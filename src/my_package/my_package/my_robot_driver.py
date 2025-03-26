@@ -10,6 +10,11 @@ WHEEL_MAX_SPEED = 6.28
 class MyRobotDriver:
     def init(self, webots_node, properties):
         self.__robot = webots_node.robot
+        self.__TIMESTEP = int(self.__robot.getBasicTimeStep())
+
+        # Enable keyboard (Use keyboard to control the robot when focusing the webots window)
+        self.__keyboard  = self.__robot.getKeyboard()
+        self.__keyboard.enable(self.__TIMESTEP)
 
         self.__left_motor = self.__robot.getDevice('left_wheel_motor')
         self.__right_motor = self.__robot.getDevice('right_wheel_motor')
@@ -44,5 +49,26 @@ class MyRobotDriver:
         self.__left_motor.setVelocity(command_motor_left)
         self.__right_motor.setVelocity(command_motor_right)
 
-        # self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO * forward_speed)
-        # self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO * forward_speed)
+        # Uncomment below will make the turtlebot keep moving forward
+        # self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO / WHEEL_RADIUS)
+        # self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO / WHEEL_RADIUS)
+
+        # Keyboard control
+        key = None
+        key = self.__keyboard.getKey()
+
+        if key == ord('W'):
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+        elif key == ord('S'):
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+        elif key == ord('A'):
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+        elif key == ord('D'):
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+        else:
+            self.__left_motor.setVelocity(0.0)
+            self.__right_motor.setVelocity(0.0)
