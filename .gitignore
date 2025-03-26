@@ -1,0 +1,19 @@
+# Ignore build and install directories
+build/
+install/
+log/
+
+# Ignore ROS2 workspace cache files
+.colcon/
+webots_ros2/.colcon/
+webots_ros2/.rosinstall
+webots_ros2/.vscode/
+
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Ignore temporary files
+*.swp
+*.swo
+.DS_Store
