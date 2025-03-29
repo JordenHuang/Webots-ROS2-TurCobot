@@ -1,5 +1,7 @@
 import rclpy
 from geometry_msgs.msg import Twist
+from enum import Enum
+from the_interfaces.srv import TermKeyboard
 
 HALF_DISTANCE_BETWEEN_WHEELS = 0.045
 WHEEL_RADIUS = 0.025
@@ -7,6 +9,17 @@ WHEEL_RADIUS = 0.025
 FORWARD_RATIO = 0.5
 WHEEL_MAX_SPEED = 6.28
 TURN_RATIO = 0.85
+
+class Direction(Enum):
+    stop = 0
+    forward = 1
+    backward = 2
+    left = 3
+    right = 4
+    forward_left = 5
+    forward_right = 6
+    backward_left = 7
+    backward_right = 8
 
 class MyRobotDriver:
     def init(self, webots_node, properties):
@@ -45,6 +58,8 @@ class MyRobotDriver:
         self.__right_motor.setPosition(float('inf'))
         self.__right_motor.setVelocity(0)
 
+        self.__setup_keyboard_service()
+
         # ==========
         # self.__target_twist = Twist()
 
@@ -55,6 +70,104 @@ class MyRobotDriver:
 
     # def __cmd_vel_callback(self, twist):
     #     self.__target_twist = twist
+
+
+    def __setup_keyboard_service(self):
+        '''
+        Set up the keyboard control from the terminal, using ROS2 service
+        '''
+        rclpy.init(args=None)
+        self.__node = rclpy.create_node('my_keyboard_node')
+        self.__node.create_service(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_service_callback)
+    def __my_term_keyboard_service_callback(self, request, response):
+        self.__node.get_logger().info(f"Incoming key: {request.key}")
+        i = 0
+        while i < 10:
+            self.keyboard_control(ord(request.key))
+            self.__robot.step()
+            i += 1
+        return response
+        
+
+    def keyboard_control(self, key):
+        if key == ord('W'):
+            self.wheel_turn(Direction.forward)
+        elif key == ord('S'):
+            self.wheel_turn(Direction.backward)
+        elif key == ord('A'):
+            self.wheel_turn(Direction.left)
+        elif key == ord('D'):
+            self.wheel_turn(Direction.right)
+        else:
+            self.wheel_turn(Direction.stop)
+
+    def joystick_control(self):
+        forward = self.__joystick.getAxisValue(1)  # Y-axis for forward/backward
+        turn = self.__joystick.getAxisValue(0)  # X-axis for turning
+        # print(f"forward: {forward}")
+        # print(f"turn: {turn}")
+
+        if forward != -1 and forward != 0:
+            # Forward
+            if forward < 0:
+                # Forward right
+                if turn > 0:
+                    self.wheel_turn(Direction.forward_right)
+                # Forward left
+                elif turn < 0:
+                    self.wheel_turn(Direction.forward_left)
+                # Forward only
+                else:
+                    self.wheel_turn(Direction.forward)
+            # Backward
+            else:
+                # Backward right
+                if turn > 0:
+                    self.wheel_turn(Direction.backward_right)
+                # Backward left
+                elif turn < 0:
+                    self.wheel_turn(Direction.backward_left)
+                # Backward only
+                else:
+                    self.wheel_turn(Direction.backward)
+        elif turn != 0:
+            # Trun right
+            if turn > 0:
+                self.wheel_turn(Direction.right)
+            # Trun left
+            elif turn < 0:
+                self.wheel_turn(Direction.left)
+        else:
+            self.wheel_turn(Direction.stop)
+
+    def wheel_turn(self, dir: Direction):
+        if dir == Direction.forward:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+        elif dir == Direction.backward:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+        elif dir == Direction.left:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+        elif dir == Direction.right:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+        elif dir == Direction.forward_left:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -TURN_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+        elif dir == Direction.forward_right:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -TURN_RATIO)
+        elif dir == Direction.backward_left:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * TURN_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+        elif dir == Direction.backward_right:
+            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
+            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * TURN_RATIO)
+        else:
+            self.__left_motor.setVelocity(0.0)
+            self.__right_motor.setVelocity(0.0)
 
     def step(self):
         # ==========
@@ -74,71 +187,17 @@ class MyRobotDriver:
         # self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO / WHEEL_RADIUS)
         # ==========
 
-        # Keyboard control
+        # Terminal keyboard control
+        rclpy.spin_once(self.__node, timeout_sec=0)
+
         key = None
         key = self.__keyboard.getKey()
 
-        if key == ord('W'):
-            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-        elif key == ord('S'):
-            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-        elif key == ord('A'):
-            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-        elif key == ord('D'):
-            self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-            self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-        else:
-            self.__left_motor.setVelocity(0.0)
-            self.__right_motor.setVelocity(0.0)
-
         # Joystick control
         if self.__JOYSTICK_ENABLED:
-            forward = self.__joystick.getAxisValue(1)  # Y-axis for forward/backward
-            turn = self.__joystick.getAxisValue(0)  # X-axis for turning
-            # print(f"forward: {forward}")
-            # print(f"turn: {turn}")
+            self.joystick_control()
 
-            if forward != -1 and forward != 0:
-                # Forward
-                if forward < 0:
-                    # Forward right
-                    if turn > 0:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -TURN_RATIO)
-                    # Forward left
-                    elif turn < 0:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -TURN_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                    # Forward only
-                    else:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                # Backward
-                else:
-                    # Backward right
-                    if turn > 0:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * TURN_RATIO)
-                    # Backward left
-                    elif turn < 0:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * TURN_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-                    # Backward only
-                    else:
-                        self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-                        self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-            elif turn != 0:
-                # Trun right
-                if turn > 0:
-                    self.__left_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-                    self.__right_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                # Trun left
-                elif turn < 0:
-                    self.__left_motor.setVelocity(WHEEL_MAX_SPEED * -FORWARD_RATIO)
-                    self.__right_motor.setVelocity(WHEEL_MAX_SPEED * FORWARD_RATIO)
-            else:
-                self.__left_motor.setVelocity(0.0)
-                self.__right_motor.setVelocity(0.0)
+        # Keyboard control
+        else:
+            self.keyboard_control(key)
+
