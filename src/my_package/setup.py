@@ -9,7 +9,6 @@ data_files.append(('share/' + package_name + '/launch', ['launch/robot_launch.py
 data_files.append(('share/' + package_name + '/worlds', ['worlds/waffle.wbt']))
 data_files.append(('share/' + package_name + '/resource', ['resource/TurtleBot3Waffle.urdf']))
 data_files.append(('share/' + package_name + '/resource/protos', ['resource/protos/TurtleBot3Waffle.proto']))
-data_files.append(('share/' + package_name + '/srv', glob('srv/*.srv')))
 data_files.append(('share/' + package_name, ['package.xml']))
 
 # Include all mesh files
@@ -31,7 +30,8 @@ setup(
     entry_points={
         'console_scripts': [
             'my_robot_driver = my_package.my_robot_driver:main',
-            'terminal_keyboard_client = my_package.terminal_keyboard_client:main'
+            'terminal_keyboard_client = my_package.terminal_keyboard_client:main',
+            'terminal_keyboard_publisher = my_package.terminal_keyboard_publisher:main'
         ],
     },
 )

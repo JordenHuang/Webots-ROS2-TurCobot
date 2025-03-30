@@ -1,7 +1,8 @@
 import rclpy
 from geometry_msgs.msg import Twist
 from enum import Enum
-from the_interfaces.srv import TermKeyboard
+# from the_interfaces.srv import TermKeyboard
+from the_interfaces.msg import TermKeyboard
 
 HALF_DISTANCE_BETWEEN_WHEELS = 0.045
 WHEEL_RADIUS = 0.025
@@ -58,7 +59,8 @@ class MyRobotDriver:
         self.__right_motor.setPosition(float('inf'))
         self.__right_motor.setVelocity(0)
 
-        self.__setup_keyboard_service()
+        # self.__setup_keyboard_service()
+        self.__setup_keyboard_topic_subscriber()
 
         # ==========
         # self.__target_twist = Twist()
@@ -71,22 +73,34 @@ class MyRobotDriver:
     # def __cmd_vel_callback(self, twist):
     #     self.__target_twist = twist
 
-
-    def __setup_keyboard_service(self):
-        '''
-        Set up the keyboard control from the terminal, using ROS2 service
-        '''
+    def __setup_keyboard_topic_subscriber(self):
         rclpy.init(args=None)
         self.__node = rclpy.create_node('my_keyboard_node')
-        self.__node.create_service(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_service_callback)
-    def __my_term_keyboard_service_callback(self, request, response):
-        self.__node.get_logger().info(f"Incoming key: {request.key}")
+        self.__node.create_subscription(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_topic_subscriber_callback, 1)
+    def __my_term_keyboard_topic_subscriber_callback(self, msg):
+        # self.__node.get_logger().info(f"I heard: {msg.key}")
         i = 0
-        while i < 10:
-            self.keyboard_control(ord(request.key))
-            self.__robot.step()
+        while i < 20:
+            self.keyboard_control(ord(msg.key))
+            self.__robot.step(16) # simulate faster in these 20 steps
             i += 1
-        return response
+
+
+    # def __setup_keyboard_service(self):
+    #     '''
+    #     Set up the keyboard control from the terminal, using ROS2 service
+    #     '''
+    #     rclpy.init(args=None)
+    #     self.__node = rclpy.create_node('my_keyboard_node')
+    #     self.__node.create_service(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_service_callback)
+    # def __my_term_keyboard_service_callback(self, request, response):
+    #     self.__node.get_logger().info(f"Incoming key: {request.key}")
+    #     i = 0
+    #     while i < 10:
+    #         self.keyboard_control(ord(request.key))
+    #         self.__robot.step()
+    #         i += 1
+    #     return response
         
 
     def keyboard_control(self, key):
