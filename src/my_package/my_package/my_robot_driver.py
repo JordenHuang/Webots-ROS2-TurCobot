@@ -2,6 +2,9 @@ import rclpy
 from geometry_msgs.msg import Twist
 from enum import Enum
 # from the_interfaces.srv import TermKeyboard
+from rclpy.duration import Duration
+import rclpy.node
+import rclpy.time
 from the_interfaces.msg import TermKeyboard
 
 HALF_DISTANCE_BETWEEN_WHEELS = 0.045
@@ -47,11 +50,9 @@ class MyRobotDriver:
             print("Joystick connected")
             print(f"Joystick model: {self.__joystick.model}")
 
+        # Get motors
         self.__left_motor = self.__robot.getDevice('left_wheel_motor')
         self.__right_motor = self.__robot.getDevice('right_wheel_motor')
-# wheel_left = turtlebot.getDevice("left_wheel_motor")
-# wheel_right = turtlebot.getDevice("right_wheel_motor")
-
 
         self.__left_motor.setPosition(float('inf'))
         self.__left_motor.setVelocity(0)
@@ -76,34 +77,15 @@ class MyRobotDriver:
     def __setup_keyboard_topic_subscriber(self):
         rclpy.init(args=None)
         self.__node = rclpy.create_node('my_keyboard_node')
+        self.__last_command_time = self.__node.get_clock().now()
+        self.__command_key_code = -1
         self.__node.create_subscription(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_topic_subscriber_callback, 1)
     def __my_term_keyboard_topic_subscriber_callback(self, msg):
         # self.__node.get_logger().info(f"I heard: {msg.key}")
-        i = 0
-        while i < 20:
-            self.keyboard_control(ord(msg.key))
-            self.__robot.step(16) # simulate faster in these 20 steps
-            i += 1
+        self.__last_command_time = self.__node.get_clock().now()
+        self.__command_key_code = ord(msg.key)
 
-
-    # def __setup_keyboard_service(self):
-    #     '''
-    #     Set up the keyboard control from the terminal, using ROS2 service
-    #     '''
-    #     rclpy.init(args=None)
-    #     self.__node = rclpy.create_node('my_keyboard_node')
-    #     self.__node.create_service(TermKeyboard, 'term_keyboard', self.__my_term_keyboard_service_callback)
-    # def __my_term_keyboard_service_callback(self, request, response):
-    #     self.__node.get_logger().info(f"Incoming key: {request.key}")
-    #     i = 0
-    #     while i < 10:
-    #         self.keyboard_control(ord(request.key))
-    #         self.__robot.step()
-    #         i += 1
-    #     return response
-        
-
-    def keyboard_control(self, key):
+    def keyboard_control(self, key:int):
         if key == ord('W'):
             self.wheel_turn(Direction.forward)
         elif key == ord('S'):
@@ -204,6 +186,14 @@ class MyRobotDriver:
         # Terminal keyboard control
         rclpy.spin_once(self.__node, timeout_sec=0)
 
+        t = self.__node.get_clock().now() - self.__last_command_time
+        if (t) > Duration(seconds=1):
+            self.keyboard_control(None)
+            self.__command_key_code = -1
+        else:
+            self.__node.get_logger().info(f"Key read: {chr(self.__command_key_code)}")
+            self.keyboard_control(self.__command_key_code)
+
         key = None
         key = self.__keyboard.getKey()
 
@@ -212,6 +202,6 @@ class MyRobotDriver:
             self.joystick_control()
 
         # Keyboard control
-        else:
+        elif self.__command_key_code == -1:
             self.keyboard_control(key)
 
