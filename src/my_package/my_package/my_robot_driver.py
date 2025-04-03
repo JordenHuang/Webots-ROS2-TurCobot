@@ -191,7 +191,8 @@ class MyRobotDriver:
             self.keyboard_control(None)
             self.__command_key_code = -1
         else:
-            self.__node.get_logger().info(f"Key read: {chr(self.__command_key_code)}")
+            if self.__command_key_code != -1:
+                self.__node.get_logger().info(f"Key read: {chr(self.__command_key_code)}")
             self.keyboard_control(self.__command_key_code)
 
         key = None

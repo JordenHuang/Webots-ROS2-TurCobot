@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <robot name="/home/jordenhuang/webots_ros2/src/my_package/resource/TurtleBot3Waffle.urdf" xmlns:xacro="http://ros.org/wiki/xacro">
   <webots>
-    <plugin type="my_package.my_robot_driver.MyRobotDriver" />
+    <!-- <plugin type="my_package.my_robot_driver.MyRobotDriver" /> -->
+    <plugin type="my_package.my_turcobot_driver.MyRobotDriver" />
   </webots>
   <link name="base_link">
     <visual>

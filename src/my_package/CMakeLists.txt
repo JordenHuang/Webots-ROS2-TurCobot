@@ -1,3 +1,5 @@
+# I DON'T know if this file helps anything
+
 cmake_minimum_required(VERSION 3.5)
 project(my_package)
 

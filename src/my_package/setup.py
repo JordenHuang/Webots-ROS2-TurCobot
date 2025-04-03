@@ -6,14 +6,23 @@ package_name = 'my_package'
 data_files = []
 data_files.append(('share/ament_index/resource_index/packages', ['resource/' + package_name]))
 data_files.append(('share/' + package_name + '/launch', ['launch/robot_launch.py']))
-data_files.append(('share/' + package_name + '/worlds', ['worlds/waffle.wbt']))
-data_files.append(('share/' + package_name + '/resource', ['resource/TurtleBot3Waffle.urdf']))
-data_files.append(('share/' + package_name + '/resource/protos', ['resource/protos/TurtleBot3Waffle.proto']))
 data_files.append(('share/' + package_name, ['package.xml']))
 
+# Include all world files
+data_files.append(('share/' + package_name + '/worlds', glob('worlds/*.wbt')))
+# Include all proto files
+data_files.append(('share/' + package_name + '/resource/protos', glob('resource/protos/*.proto')))
+# Include all URDF files
+data_files.append(('share/' + package_name + '/resource', glob('resource/*.urdf')))
 # Include all mesh files
 mesh_files = glob('resource/protos/turtleBot3Waffle_mesh/*')
 data_files.append(('share/' + package_name + '/resource/protos/turtleBot3Waffle_mesh', mesh_files))
+mesh_files = glob('resource/protos/mycobot280pi_mesh/*')
+data_files.append(('share/' + package_name + '/resource/protos/mycobot280pi_mesh', mesh_files))
+# mesh_files = glob('resource/protos/gripper/*')
+# data_files.append(('share/' + package_name + '/resource/protos/gripper', mesh_files))
+mesh_files = glob('resource/protos/gripper/v2/*')
+data_files.append(('share/' + package_name + '/resource/protos/gripper/v2', mesh_files))
 
 setup(
     name=package_name,
@@ -29,7 +38,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'my_robot_driver = my_package.my_robot_driver:main',
+            # 'my_robot_driver = my_package.my_robot_driver:main',
             'terminal_keyboard_client = my_package.terminal_keyboard_client:main',
             'terminal_keyboard_publisher = my_package.terminal_keyboard_publisher:main'
         ],

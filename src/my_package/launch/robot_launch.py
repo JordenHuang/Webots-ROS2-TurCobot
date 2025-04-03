@@ -11,7 +11,8 @@ def generate_launch_description():
     robot_description_path = os.path.join(package_dir, 'resource', 'TurtleBot3Waffle.urdf')
 
     webots = WebotsLauncher(
-        world=os.path.join(package_dir, 'worlds', 'waffle.wbt')
+        # world=os.path.join(package_dir, 'worlds', 'waffle.wbt')
+        world=os.path.join(package_dir, 'worlds', 'waffle_and_arm.wbt')
     )
 
     my_robot_driver = WebotsController(
