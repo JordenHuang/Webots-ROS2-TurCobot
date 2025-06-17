@@ -19,7 +19,7 @@ while True:
 
     # Wait client to connect again if it's closed
     if len(length_bytes) < 10:
-        print("Client closed too early")
+        print("Connection closed")
         connection.close()
         print("Waiting connection...")
         connection, address = serversocket.accept()

@@ -22,7 +22,7 @@ def main():
     # Greeting to see if this function is called
     print("Hello from my_create driver's main function")
 
-    cam_left = cv2.VideoCapture(0)
+    cam_left = cv2.VideoCapture(2)
     # cam_right = cv2.VideoCapture(0)
     if not cam_left.isOpened():
         print("Cannot open left camera")
@@ -35,33 +35,22 @@ def main():
     # if cam_left.isOpened() and cam_right.isOpened():
     #     print("Camera opened SUCCESSFULLY")
 
-    # # Create a Create2.
-    # my_create = Create2(PORT)
-    # # start the bot
-    # my_create.start()
-    # # safe mode
-    # my_create.safe()
-    # time.sleep(1)
+    # Create a Create2.
+    my_create = Create2(PORT)
+    # start the bot
+    my_create.start()
+    # safe mode
+    my_create.safe()
+    time.sleep(1)
 
-    # sensors = my_create.get_sensors()
-    # battery_capacity = sensors.battery_capacity
-    # battery_charge = sensors.battery_charge
-    # print(f"Battery capacity: {battery_capacity}")
-    # print(f"Battery charge: {battery_charge}")
-    # print(f"Battery percentage: {battery_charge / battery_capacity * 100.0:.2f}% (approximatly)")
-    # time.sleep(1)
+    sensors = my_create.get_sensors()
+    battery_capacity = sensors.battery_capacity
+    battery_charge = sensors.battery_charge
+    print(f"Battery capacity: {battery_capacity}")
+    print(f"Battery charge: {battery_charge}")
+    print(f"Battery percentage: {battery_charge / battery_capacity * 100.0:.2f}% (approximatly)")
+    time.sleep(1)
 
-
-    print("Try to connect to server...")
-    clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clientsocket.connect(('localhost', 8989))
-    print("Connected")
-    # clientsocket.settimeout(60)
-
-    counter = 0
-    while True:
-        counter += 1
-        time.sleep(0.2)
     # turn in place
         # ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.25)
         # ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.25)
@@ -72,17 +61,33 @@ def main():
     # time.sleep(2)
     # '''
 
-        ret_left, frame_left = cam_left.read()
-        # ret_right, frame_right = cam_right.read()
-        if ret_left:
-            cv2.imshow('Camera left', frame_left)
+    print("Try to connect to server...")
+    clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    clientsocket.connect(('localhost', 8989))
+    print("Connected")
+    # clientsocket.settimeout(60)
+
+    counter = 0
+    while True:
+        start = time.time()
+        while True:
+            ret_left, frame_left = cam_left.read()
+            # ret_right, frame_right = cam_right.read()
+            if ret_left:
+                cv2.imshow('Camera left', frame_left)
+
+            duriation = time.time() - start
+            # Leave loop (to send image to server) every 1 second
+            if duriation >= 0.01:
+                counter += 1
+                break
 
         # Display the captured frame
-        if ret_left and counter % 10 == 0:
+        if ret_left and counter % 100 == 0:
             counter = 0
             print(f"Img size: {str(frame_left.size)}", flush=True)
             # Encode the image to JPEG first
-            encoded, buffer = cv2.imencode(".jpg", frame_left)
+            _, buffer = cv2.imencode(".jpg", frame_left)
             buffer_bytes = buffer.tobytes()
             buffer_length = len(buffer_bytes)
             buffer_length_bytes = buffer_length.to_bytes(10, 'big')
@@ -103,6 +108,22 @@ def main():
                 cmd_bytes += packet
             cmd = cmd_bytes.decode()
             print(f"Receive cmd: '{cmd}'", flush=True)
+
+            if cmd == "back":
+                ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.5)
+                ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.5)
+            elif cmd == "left":
+                ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.5)
+                ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.5)
+            elif cmd == "right":
+                ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.5)
+                ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.5)
+            elif cmd == "front":
+                ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.5)
+                ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.5)
+            else:
+                ru.wheel_turn(my_create, "left", direction.Direction.STOP, 0)
+                ru.wheel_turn(my_create, "right", direction.Direction.STOP, 0)
 
         # Press 'q' to exit the loop
         if cv2.waitKey(1) == ord('q'):
