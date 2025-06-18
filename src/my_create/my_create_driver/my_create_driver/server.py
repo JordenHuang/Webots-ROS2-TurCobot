@@ -6,42 +6,38 @@ import socket
 import cv2
 import numpy as np
 import threading
+import time
 
 from my_model import *
 from abstacle_avoidance_algorithm import *
 
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serversocket.bind(('localhost', 8989))
-# serversocket.bind(('172.20.10.13', 8989))
-serversocket.listen(1) # become a server socket, maximum 1 connections
+ADDRESS = "localhost"
+PORT = 8989
 
-print("Waiting connection...")
-connection, address = serversocket.accept()
-print(f"Connection from: {address}")
-
+serversocket = None
+connection = None
+address = None
 received_image = None
 masked_image = None
-close_window = False
-stop_thread = False
+recv_thread = None
 
-def display_image():
-    global stop_thread, close_window, received_image, masked_image
-    while stop_thread == False:
-        if close_window == True:
+def main():
+    global received_image, masked_image
+    while True:
+        time.sleep(0.1)
+        if cv2.waitKey(1) == ord('q'):
+            received_image = None
+            masked_image = None
             cv2.destroyAllWindows()
         else:
             if received_image is not None:
-                cv2.imshow("Image", received_image)
+                cv2.imshow("Received Image", received_image)
             if masked_image is not None:
-                cv2.imshow("Mask image", masked_image)
-            cv2.waitKey(1)
-    cv2.destroyAllWindows()
+                cv2.imshow("Masked Image", masked_image)
 
-a = threading.Thread(target=display_image, daemon=True)
-
-
-try:
-    a.start()
+def recv_image():
+    global serversocket, connection, address
+    global received_image, masked_image
     while True:
         # Read image size first
         length_bytes = connection.recv(10)
@@ -50,11 +46,9 @@ try:
         if len(length_bytes) < 10:
             print("Connection closed")
             connection.close()
-            close_window = True
             print("Waiting connection...")
             connection, address = serversocket.accept()
             print(f"Connection from: {address}")
-            close_window = False
             continue
 
         length = int.from_bytes(length_bytes, 'big')
@@ -69,11 +63,9 @@ try:
         print(f"Buffer len: {len(buf)}")
         buf = np.frombuffer(buf, dtype='uint8')
         print(f"Buffer: {buf}")
-
-
         camImage = cv2.imdecode(buf, cv2.IMREAD_COLOR)
         received_image = camImage
-        # camImage = camImage.reshape(512, 512)
+
         if camImage is not None:
             print(f"img size: {camImage.size}")
 
@@ -107,11 +99,23 @@ try:
             print(f"cmd length: {len(cmd)}")
             cmd_length = len(cmd).to_bytes(10, 'big')
             connection.sendall(cmd_length + cmd.encode())
-except KeyboardInterrupt:
-    print("KeyboardInterrupted, close server")
-    # if cv2.waitKey(1) == ord('q'):
-    #     break
-    received_image = None
-    masked_image = None
-    stop_thread = True
-    a.join()
+
+
+if __name__ == "__main__":
+    recv_thread = threading.Thread(target=recv_image, daemon=True)
+    try:
+        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        serversocket.bind((ADDRESS, PORT))
+        # serversocket.bind(('172.20.10.13', 8989))
+        serversocket.listen(1) # become a server socket, maximum 1 connections
+
+        print("Waiting connection...")
+        connection, address = serversocket.accept()
+        print(f"Connection from: {address}")
+
+        recv_thread.start()
+        main()
+    except KeyboardInterrupt:
+        print("Keyboard interrupted, closing server...")
+    else:
+        cv2.destroyAllWindows()
