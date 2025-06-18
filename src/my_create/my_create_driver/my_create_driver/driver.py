@@ -18,11 +18,10 @@ HEIGHT = HIGH_VALUE
 
 
 def main():
-    # '''
     # Greeting to see if this function is called
     print("Hello from my_create driver's main function")
 
-    cam_left = cv2.VideoCapture(2)
+    cam_left = cv2.VideoCapture(0)
     # cam_right = cv2.VideoCapture(0)
     if not cam_left.isOpened():
         print("Cannot open left camera")
@@ -35,35 +34,26 @@ def main():
     # if cam_left.isOpened() and cam_right.isOpened():
     #     print("Camera opened SUCCESSFULLY")
 
-    # Create a Create2.
-    my_create = Create2(PORT)
-    # start the bot
-    my_create.start()
-    # safe mode
-    my_create.safe()
-    time.sleep(1)
+    # # Create a Create2.
+    # my_create = Create2(PORT)
+    # # start the bot
+    # my_create.start()
+    # # safe mode
+    # my_create.safe()
+    # time.sleep(1)
 
-    sensors = my_create.get_sensors()
-    battery_capacity = sensors.battery_capacity
-    battery_charge = sensors.battery_charge
-    print(f"Battery capacity: {battery_capacity}")
-    print(f"Battery charge: {battery_charge}")
-    print(f"Battery percentage: {battery_charge / battery_capacity * 100.0:.2f}% (approximatly)")
-    time.sleep(1)
-
-    # turn in place
-        # ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.25)
-        # ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.25)
-        # time.sleep(2)
-    # my_create.drive_direct(100,-100)  # inputs for motors are +/- 500 max
-    # time.sleep(2)
-    # my_create.drive_direct(-100,100)  # inputs for motors are +/- 500 max
-    # time.sleep(2)
-    # '''
+    # sensors = my_create.get_sensors()
+    # battery_capacity = sensors.battery_capacity
+    # battery_charge = sensors.battery_charge
+    # print(f"Battery capacity: {battery_capacity}")
+    # print(f"Battery charge: {battery_charge}")
+    # print(f"Battery percentage: {battery_charge / battery_capacity * 100.0:.2f}% (approximatly)")
+    # time.sleep(1)
 
     print("Try to connect to server...")
     clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     clientsocket.connect(('localhost', 8989))
+    # clientsocket.connect(('172.20.10.13', 8989))
     print("Connected")
     # clientsocket.settimeout(60)
 
@@ -83,7 +73,11 @@ def main():
                 break
 
         # Display the captured frame
-        if ret_left and counter % 100 == 0:
+        if ret_left and counter % 50 == 0:
+            # ru.drive_my_create(my_create, direction.Direction.STOP)
+            # ru.wheel_turn(my_create, "left", direction.Direction.STOP, 0)
+            # ru.wheel_turn(my_create, "right", direction.Direction.STOP, 0)
+
             counter = 0
             print(f"Img size: {str(frame_left.size)}", flush=True)
             # Encode the image to JPEG first
@@ -109,21 +103,29 @@ def main():
             cmd = cmd_bytes.decode()
             print(f"Receive cmd: '{cmd}'", flush=True)
 
-            if cmd == "back":
-                ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.5)
-                ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.5)
-            elif cmd == "left":
-                ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.5)
-                ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.5)
-            elif cmd == "right":
-                ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.5)
-                ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.5)
-            elif cmd == "front":
-                ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.5)
-                ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.5)
-            else:
-                ru.wheel_turn(my_create, "left", direction.Direction.STOP, 0)
-                ru.wheel_turn(my_create, "right", direction.Direction.STOP, 0)
+            # if cmd == "back":
+            #     ru.drive_my_create(my_create, direction.Direction.BACKWARD)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.2)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.2)
+            #     # time.sleep(0.5)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.2)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.2)
+            # elif cmd == "left":
+            #     ru.drive_my_create(my_create, direction.Direction.LEFT)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.BACKWARD, 0.2)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.2)
+            # elif cmd == "right":
+            #     ru.drive_my_create(my_create, direction.Direction.RIGHT)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.2)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.BACKWARD, 0.2)
+            # elif cmd == "front":
+            #     ru.drive_my_create(my_create, direction.Direction.FORWARD)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.FORWARD, 0.2)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.FORWARD, 0.2)
+            # else:
+            #     ru.drive_my_create(my_create, direction.Direction.STOP)
+            #     # ru.wheel_turn(my_create, "left", direction.Direction.STOP, 0)
+            #     # ru.wheel_turn(my_create, "right", direction.Direction.STOP, 0)
 
         # Press 'q' to exit the loop
         if cv2.waitKey(1) == ord('q'):
