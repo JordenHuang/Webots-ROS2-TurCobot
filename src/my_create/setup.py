@@ -45,5 +45,8 @@ setup(
         'console_scripts': [
             'my_robot_driver = my_create.my_robot_driver:main',
         ],
+        # 'webots_ros2_driver.robot_driver': [
+        #     'MyRobotDriver = my_create.my_robot_driver:MyRobotDriver',
+        # ],
     },
 )

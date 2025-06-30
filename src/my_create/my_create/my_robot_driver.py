@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rclpy
-from rclpy.node import Node
+# from webots_ros2_driver.webots_node import WebotsNode
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -22,11 +22,14 @@ LINEAR_SPEED_FORWARD = 0.22  # m/s, TurtleBot3 Burger's max linear speed
 LINEAR_SPEED_BACKWARD = 0.15 # m/s
 ANGULAR_SPEED = 1.0     # rad/s, a moderate turning speed
 
-class MyRobotDriver(Node):
-    def __init__(self):
-        super().__init__('my_robot_driver')
+class MyRobotDriver:
+    def __init__(self, webots_node, properties):
+        print("MyRobotDirver init ================================================================================", flush=True)
+        # super().__init__('my_robot_driver')
+        self.__robot = webots_node.robot
+        self.__TIMESTEP = int(self.__robot.getBasicTimeStep())
         self.get_logger().info("Robot Driver Node has been started.")
-
+        '''
         # --- State Variables ---
         self.manual_control = False
         self.manual_key_pressed = None
@@ -222,20 +225,25 @@ class MyRobotDriver(Node):
             twist_msg.angular.z = -ANGULAR_SPEED # Turn right by default
 
         self.cmd_vel_publisher.publish(twist_msg)
+        '''
+    def step(self):
+        rclpy.spin_once(self.__node, timeout_sec=0)
+        
 
-def main(args=None):
-    rclpy.init(args=args)
-    robot_driver_node = MyRobotDriver()
-    try:
-        rclpy.spin(robot_driver_node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # Stop the robot on shutdown
-        stop_msg = Twist()
-        robot_driver_node.cmd_vel_publisher.publish(stop_msg)
-        robot_driver_node.destroy_node()
-        rclpy.shutdown()
+# def main(args=None):
+#     print("my_robot_driver started!!!")
+#     rclpy.init(args=args)
+#     robot_driver_node = MyRobotDriver()
+#     try:
+#         rclpy.spin(robot_driver_node)
+#     except KeyboardInterrupt:
+#         pass
+#     finally:
+#         # Stop the robot on shutdown
+#         stop_msg = Twist()
+#         robot_driver_node.cmd_vel_publisher.publish(stop_msg)
+#         robot_driver_node.destroy_node()
+#         rclpy.shutdown()
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

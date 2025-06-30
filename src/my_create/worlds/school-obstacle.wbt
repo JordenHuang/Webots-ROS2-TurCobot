@@ -1445,7 +1445,8 @@ TurtleBot3Waffle {
 }
 MyCreate {
   translation 3.37 16.49 0.044
-  controller ""
+  name "MyCreate"
+  controller "<extern>"
   camera_width 512
   camera_height 512
 }

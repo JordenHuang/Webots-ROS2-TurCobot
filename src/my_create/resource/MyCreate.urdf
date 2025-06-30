@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<robot name="/home/programs/Webots-ROS2-TurCobot/src/my_create/resource/MyCreate.urdf" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="/home/jayhuang/programs/ROS2-Project/src/my_create/resource/MyCreate.urdf
+" xmlns:xacro="http://ros.org/wiki/xacro">
+<!-- <robot name="MyCreate" xmlns:xacro="http://ros.org/wiki/xacro"> -->
   <webots>
     <plugin type="my_create.my_robot_driver.MyRobotDriver"/>
   </webots>

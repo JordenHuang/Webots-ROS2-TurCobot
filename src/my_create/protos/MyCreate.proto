@@ -8,7 +8,7 @@ PROTO MyCreate [
   field SFVec3f    translation     0 0 0.044                # Is `Transform.translation`.
   field SFRotation rotation        0 0 1 0                  # Is `Transform.rotation`.
   field SFString   name            "MyCreate"                 # Is `Solid.name`.
-  field SFString   controller      "create_avoid_obstacles" # Is `Robot.controller`.
+  field SFString   controller      "<extern>" # Is `Robot.controller`.
   field MFString   controllerArgs  []                       # Is `Robot.controllerArgs`.
   field SFString   window          "<generic>"              # Is `Robot.window`.
   field SFString   customData      ""                       # Is `Robot.customData`.
