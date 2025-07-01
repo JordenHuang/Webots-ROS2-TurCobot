@@ -43,7 +43,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'my_robot_driver = my_create.my_robot_driver:main',
+            # 'my_robot_driver = my_create.my_robot_driver:main',
+            'vision_node = my_create.vision_node:main',
         ],
         # 'webots_ros2_driver.robot_driver': [
         #     'MyRobotDriver = my_create.my_robot_driver:MyRobotDriver',
