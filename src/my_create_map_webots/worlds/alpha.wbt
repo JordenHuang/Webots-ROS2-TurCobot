@@ -1,0 +1,29 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "../protos/MyCreate.proto"
+EXTERNPROTO "../protos/box_medium.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.2275102561118623 0.20857031188543443 -0.9511769069757359 1.7073269579456174
+  position -0.8179073994584535 3.540903719933168 1.7349459760727968
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 5 5
+}
+MyCreate {
+  translation -1.19 0.62 0.044
+  name "MyCreate"
+  controller "<extern>"
+}
+box_medium {
+  translation -0.72 0.59 0.03
+}
