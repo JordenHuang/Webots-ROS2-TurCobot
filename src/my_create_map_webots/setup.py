@@ -43,7 +43,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'vision_node = my_create_map_webots.vision_node:main',
+            # 'vision_node = my_create_map_webots.vision_node:main',
         ],
     },
 )

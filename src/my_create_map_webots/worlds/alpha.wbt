@@ -9,8 +9,8 @@ EXTERNPROTO "../protos/box_medium.proto"
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.2275102561118623 0.20857031188543443 -0.9511769069757359 1.7073269579456174
-  position -0.8179073994584535 3.540903719933168 1.7349459760727968
+  orientation 0.2722332006109179 0.24707715255063503 -0.9299687979564724 1.739537725712569
+  position -0.6849176857277377 3.7182482446703164 2.140341846130671
 }
 TexturedBackground {
 }
@@ -21,9 +21,55 @@ RectangleArena {
 }
 MyCreate {
   translation -1.19 0.62 0.044
-  name "MyCreate"
   controller "<extern>"
 }
 box_medium {
   translation -0.72 0.59 0.03
+}
+box_medium {
+  translation -0.79 0.84 0.03
+  name "box_medium(1)"
+}
+box_medium {
+  translation -0.84 0.36 0.03
+  name "box_medium(2)"
+}
+box_medium {
+  translation -0.2 0.36 0.03
+  name "box_medium(3)"
+}
+box_medium {
+  translation -0.96 -0.13 0.03
+  rotation 0 0 1 1.309
+  name "box_medium(4)"
+}
+box_medium {
+  translation -1.65274 0.221242 0.03
+  rotation 0 0 1 1.309
+  name "box_medium(5)"
+}
+box_medium {
+  translation -1.98527 -0.199145 0.03
+  rotation 0 0 -1 -0.2618053071795865
+  name "box_medium(6)"
+}
+box_medium {
+  translation -1.76802 0.728684 0.03
+  rotation 0 0 -1 -0.2618053071795865
+  name "box_medium(7)"
+}
+box_medium {
+  translation -1.1205 1.0308 0.03
+  rotation 0 0 1 -2.6179953071795863
+  name "box_medium(8)"
+}
+box_medium {
+  translation -0.448114 0.726197 0.03
+  rotation 0 0 1 -2.6179953071795863
+  name "box_medium(9)"
+}
+box_medium {
+  translation -0.658114 1.08993 0.03
+  rotation 0 0 1 2.87979
+  name "box_medium(10)"
 }

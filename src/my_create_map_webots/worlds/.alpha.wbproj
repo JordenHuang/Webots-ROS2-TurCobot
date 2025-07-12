@@ -8,5 +8,5 @@ orthographicViewHeight: 1
 textFiles: -1
 globalOptionalRendering: AllBoundingObjects
 consoles: Console:All:All
-renderingDevicePerspectives: MyCreate:camera_left;1;1;0;0
-renderingDevicePerspectives: MyCreate:camera_right;1;1;0.275862;0
+renderingDevicePerspectives: MyCreate:camera_left;1;0.310185;0;0
+renderingDevicePerspectives: MyCreate:camera_right;1;0.308333;0.21125;0

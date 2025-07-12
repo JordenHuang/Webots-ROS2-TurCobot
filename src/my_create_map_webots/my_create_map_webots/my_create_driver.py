@@ -11,12 +11,16 @@ import numpy as np
 
 # ROS and CV Bridge imports
 import rclpy
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.time import Time
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from geometry_msgs.msg import Twist
+from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import Image, CameraInfo
-from cv_bridge import CvBridge
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
 
 from my_create_map_webots.vision_node import VisionProcessor
+from controller import Supervisor
 
 
 # --- Constants ---
@@ -36,6 +40,19 @@ class MyCreateDriver:
         # Get the time step of the current world.
         self._TIMESTEP = int(self._robot.getBasicTimeStep())
 
+        # Enable keyboard (Use keyboard to control the robot when focusing the webots window)
+        self._keyboard  = self._robot.getKeyboard()
+        self._keyboard.enable(self._TIMESTEP)
+
+        self._left_motor = self._robot.getDevice("left wheel motor")
+        self._right_motor = self._robot.getDevice("right wheel motor")
+        self._left_motor.setPosition(float('+inf'));
+        self._right_motor.setPosition(float('+inf'));
+        self._left_motor.setVelocity(0.0)
+        self._right_motor.setVelocity(0.0)
+
+        self._counter = 100
+
         self.camLeft = self._robot.getDevice("camera_left")
         self.camLeft.enable(self._TIMESTEP)
 
@@ -45,16 +62,31 @@ class MyCreateDriver:
         # Both camera (should) have the same width and height
         self.camWidth = self.camLeft.getWidth()
         self.camHeight = self.camLeft.getHeight()
-        self.cameraFov = self.camLeft.getFov()
+        self.camFov = self.camLeft.getFov()
 
         rclpy.init(args=None)
         self.node = rclpy.create_node("my_create_node")
 
+        # For CameraInfo (less bandwidth, more critical)
+        info_qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.RELIABLE, # Can be reliable
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+        info_qos_profile = 10
+
         # Publishers
-        self.camLeftImgPub = self.node.create_publisher(Image, "/camera_left/image_raw", qos_profile_sensor_data)
-        self.camRightImgPub = self.node.create_publisher(Image, "/camera_right/image_raw", qos_profile_sensor_data)
-        self.camLeftInfoPub = self.node.create_publisher("/camera_left/camera_info", 10)
-        self.camRightInfoPub = self.node.create_publisher("/camera_left/camera_info", 10)
+        # self.camLeftImgPub = self.node.create_publisher(Image, "/MyCreate/camera_left/image_raw", info_qos_profile)
+        # self.camRightImgPub = self.node.create_publisher(Image, "/MyCreate/camera_right/image_raw", info_qos_profile)
+        # self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/MyCreate/camera_left/camera_info", info_qos_profile)
+        # self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/MyCreate/camera_right/camera_info", info_qos_profile)
+        self.camLeftImgPub = self.node.create_publisher(Image, "/camera_left/image_raw", info_qos_profile)
+        self.camRightImgPub = self.node.create_publisher(Image, "/camera_right/image_raw", info_qos_profile)
+        self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/camera_left/camera_info", info_qos_profile)
+        self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/camera_right/camera_info", info_qos_profile)
+
+        # My own /clock publisher
+        self.clockPub = self.node.create_publisher(Clock, "/clock", 10)
 
         #建立轉換器物件
         self.bridge = CvBridge()
@@ -64,8 +96,47 @@ class MyCreateDriver:
         self._calculate_camera_parameters()
 
     def step(self):
+        self._counter += 1
+
+        key = self._keyboard.getKey()
+        vel = np.pi / 3
+        if key == ord('W'):
+            self._left_motor.setVelocity(vel)
+            self._right_motor.setVelocity(vel)
+        elif key == ord('S'):
+            self._left_motor.setVelocity(-vel)
+            self._right_motor.setVelocity(-vel)
+        elif key == ord('A'):
+            self._left_motor.setVelocity(-vel)
+            self._right_motor.setVelocity(vel)
+        elif key == ord('D'):
+            self._left_motor.setVelocity(vel)
+            self._right_motor.setVelocity(-vel)
+        else:
+            self._left_motor.setVelocity(0.0)
+            self._right_motor.setVelocity(0.0)
+
+        # if self._counter < 50:
+        #     return
+
+        self._counter = 0
         shape = (self.camHeight, self.camWidth, 4)
-        now = self.node.get_clock().now().to_msg()
+        # now = self.node.get_clock().now().to_msg()
+        # now = Time(seconds=self._robot.getTime()).to_msg()
+        # self.node.get_logger().info(f"time: {now}")
+
+        # clock_message = Clock()
+        # clock_message.clock = now
+        # self.clockPub.publish(clock_message)
+
+        sim_time_sec = self._robot.getTime()  # Webots 提供的模擬秒數（float）
+        sec = int(sim_time_sec)
+        nsec = int((sim_time_sec - sec) * 1e9)
+        clock_msg = Clock()
+        now = Time(seconds=sec, nanoseconds=nsec).to_msg()
+        clock_msg.clock = now
+        self.clockPub.publish(clock_msg)
+
 
         # === Publish camera image of both cameras ===
         # Get image from both camera
@@ -87,19 +158,20 @@ class MyCreateDriver:
 
         # --- Set fields ---
         leftImgMsg.header.stamp = now
-        leftImgMsg.header.frame_id = "camera_left_link" # Frame ID for the left camera
+        leftImgMsg.header.frame_id = "camera_left" # Frame ID for the left camera
         rightImgMsg.header.stamp = now
-        rightImgMsg.header.frame_id = "camera_right_link" # Frame ID for the right camera
+        rightImgMsg.header.frame_id = "camera_right" # Frame ID for the right camera
 
         # --- Publish ---
-        self.camLeftImgPub.publish(leftImgMsg)
-        self.camRightImgPub.publish(rightImgMsg)
+        if rclpy.ok():
+            self.camLeftImgPub.publish(leftImgMsg)
+            self.camRightImgPub.publish(rightImgMsg)
 
         # === Publish camera info ===
         # --- Left CameraInfo ---
         camLeftInfoMsg = CameraInfo()
         camLeftInfoMsg.header.stamp = now
-        camLeftInfoMsg.header.frame_id = 'camera_left_link' # Must match image frame_id
+        camLeftInfoMsg.header.frame_id = 'camera_left' # Must match image frame_id
         camLeftInfoMsg.width = self.camWidth
         camLeftInfoMsg.height = self.camHeight
         camLeftInfoMsg.distortion_model = "plumb_bob" # Common distortion model (assuming no distortion here)
@@ -110,22 +182,23 @@ class MyCreateDriver:
 
         # --- Right CameraInfo ---
         # (similar to left, but P might differ if it encodes stereo baseline)
-        camera_info_right_msg = CameraInfo()
-        camera_info_right_msg.header.stamp = now
-        camera_info_right_msg.header.frame_id = 'camera_right_link' # Must match image frame_id
-        camera_info_right_msg.width = self.camera_width
-        camera_info_right_msg.height = self.camera_height
-        camera_info_right_msg.distortion_model = "plumb_bob"
-        camera_info_right_msg.d = self.D
-        camera_info_right_msg.k = self.K.flatten().tolist()
-        camera_info_right_msg.r = self.R
-        camera_info_right_msg.p = self.P_right # Use P_right if it's different
+        camRightInfoMsg = CameraInfo()
+        camRightInfoMsg.header.stamp = now
+        camRightInfoMsg.header.frame_id = 'camera_right' # Must match image frame_id
+        camRightInfoMsg.width = self.camWidth
+        camRightInfoMsg.height = self.camHeight
+        camRightInfoMsg.distortion_model = "plumb_bob"
+        camRightInfoMsg.d = self.D
+        camRightInfoMsg.k = self.K.flatten().tolist()
+        camRightInfoMsg.r = self.R
+        camRightInfoMsg.p = self.P_right # Use P_right if it's different
 
         # --- Publish ---
-        self.camLeftInfoPub.publish(camLeftInfoMsg)
-        self.camera_info_right_publisher.publish(camera_info_right_msg)
+        if rclpy.ok():
+            self.camLeftInfoPub.publish(camLeftInfoMsg)
+            self.camRightInfoPub.publish(camRightInfoMsg)
 
-        rclpy.spin_once(self.node, timeout_sec=0)
+        rclpy.spin_once(self.node, timeout_sec=0.001)
 
 
     def _calculate_camera_parameters(self):
@@ -174,7 +247,7 @@ class MyCreateDriver:
         # camera_left translation: 0.17 0.05 0.05
         # camera_right translation: 0.17 -0.05 0.0499997
         # The baseline is 0.05 - (-0.05) = 0.1m along the Y-axis (vertical stereo)
-        self.baseline = 0.08 # meters
+        self.baseline = 0.1 # meters
 
         # IMPORTANT for RTAB-Map:
         # If RTAB-Map's internal stereo module expects a P matrix with the baseline for the right camera,
@@ -184,7 +257,12 @@ class MyCreateDriver:
         # The simplest approach is to let RTAB-Map figure it out from your TF transforms (base_link to camera_left_link and base_link to camera_right_link).
         # So, provide P matrices that are just like the K matrix, with an extra column of zeros for Tx/Ty.
 
-        self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
-                                  # RTAB-Map will use TF for baseline information
+        # self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
+        #                           # RTAB-Map will use TF for baseline information
 
+        self.P_right = [
+            fx, 0.0, cx, -fx * self.baseline,
+            0.0, fy, cy, 0.0,
+            0.0, 0.0, 1.0, 0.0
+        ]
 
