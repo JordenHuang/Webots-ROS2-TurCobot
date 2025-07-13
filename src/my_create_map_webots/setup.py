@@ -44,6 +44,7 @@ setup(
     entry_points={
         'console_scripts': [
             # 'vision_node = my_create_map_webots.vision_node:main',
+            # 'MySupervisorDriver.py = my_create_map_webots.MySupervisorDriver:main',
         ],
     },
 )

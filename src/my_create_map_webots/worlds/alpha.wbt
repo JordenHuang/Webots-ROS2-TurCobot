@@ -21,6 +21,7 @@ RectangleArena {
 }
 MyCreate {
   translation -1.19 0.62 0.044
+  name "MyCreate"
   controller "<extern>"
 }
 box_medium {

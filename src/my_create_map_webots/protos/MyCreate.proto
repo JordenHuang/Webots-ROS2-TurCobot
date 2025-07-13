@@ -15,8 +15,8 @@ PROTO MyCreate [
   field SFBool     supervisor      FALSE                    # Is `Robot.supervisor`.
   field SFBool     synchronization TRUE                     # Is `Robot.synchronization`.
   field SFFloat      camera_fieldOfView   0.84         # Is `Camera.fieldOfView`.
-  field SFInt32      camera_width         1080          # Is `Camera.width`.
-  field SFInt32      camera_height        720           # Is `Camera.height`.
+  field SFInt32      camera_width         320          # Is `Camera.width`.
+  field SFInt32      camera_height        240           # Is `Camera.height`.
   field SFBool       camera_antiAliasing  FALSE        # Is `Camera.antiAliasing`.
   # field SFRotation   camera_rotation      0 0 1 3.14   # Is `Camera.rotation`. Interesting setup: set `0 1 0 0.47` in order to simulate the linear camera mode.
   field SFFloat      camera_noise         0.0          # Is `Camera.noise`.
