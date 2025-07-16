@@ -668,7 +668,7 @@ Robot {
       children [
         Camera {
           translation 0.17 -0.05 0.0499997
-          rotation 0 1 0 0.261799
+          rotation 0 0 1 0
           children [
             DEF CAMERA_POSE Pose {
               rotation 0 1 0 1.5708
@@ -691,18 +691,17 @@ Robot {
           fieldOfView IS camera_fieldOfView
           width IS camera_width
           height IS camera_height
-          near 0.0055
+          # near 0.0055
           antiAliasing IS camera_antiAliasing
           motionBlur IS camera_motionBlur
           noise IS camera_noise
           focus DEF CAMERA_FOCUS Focus {
-            focalDistance 1
-            focalLength 720
+            focalLength 0.004
           }
         }
         Camera {
           translation 0.17 0.05 0.05
-          rotation 0 1 0 0.261799
+          rotation 0 0 1 0
           children [
             USE CAMERA_POSE
           ]
@@ -710,7 +709,7 @@ Robot {
           fieldOfView IS camera_fieldOfView
           width IS camera_width
           height IS camera_height
-          near 0.0055
+          # near 0.0055
           antiAliasing IS camera_antiAliasing
           motionBlur IS camera_motionBlur
           noise IS camera_noise

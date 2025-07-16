@@ -10,16 +10,14 @@
   <joint name="base_link_camera_left_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_left"/>
-    <origin xyz="0.17 0.05 0.05" rpy="-1.570796 0.261799 -1.570796"/>
-    <!-- <origin xyz="0.17 0.05 0.05" rpy="0 0 0"/> -->
+    <origin xyz="0.125 0.05 0.065" rpy="-1.570796 0 -1.570796"/>
   </joint>
   <link name="camera_right">
   </link>
   <joint name="base_link_camera_right_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_right"/>
-    <origin xyz="0.17 -0.05 0.05" rpy="-1.570796 0.261799 -1.570796"/>
-    <!-- <origin xyz="0.17 -0.05 0.05" rpy="0 0 0"/> -->
+    <origin xyz="0.17 -0.05 0.05" rpy="-1.570796 0 -1.570796"/>
   </joint>
   <link name="stand_left_back_1">
     <visual>

@@ -100,7 +100,7 @@ class MyCreateDriver:
         self._counter += 1
 
         key = self._keyboard.getKey()
-        vel = np.pi / 3
+        vel = np.pi / 1
         if key == ord('W'):
             self._left_motor.setVelocity(vel)
             self._right_motor.setVelocity(vel)
@@ -259,7 +259,7 @@ class MyCreateDriver:
         # The simplest approach is to let RTAB-Map figure it out from your TF transforms (base_link to camera_left_link and base_link to camera_right_link).
         # So, provide P matrices that are just like the K matrix, with an extra column of zeros for Tx/Ty.
 
-        # self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
+        self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
         #                           # RTAB-Map will use TF for baseline information
 
         # self.P_right = [
@@ -268,9 +268,9 @@ class MyCreateDriver:
         #     0.0, 0.0, 1.0, 0.0
         # ]
 
-        self.P_right = np.array([
-            fx, 0.0, cx, -fx * self.baseline,
-            0.0, fy, cy, 0.0,
-            0.0, 0.0, 1.0, 0.0
-        ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
+        # self.P_right = np.array([
+        #     fx, 0.0, cx, -fx * self.baseline,
+        #     0.0, fy, cy, 0.0,
+        #     0.0, 0.0, 1.0, 0.0
+        # ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
 
