@@ -160,9 +160,9 @@ class MyCreateDriver:
 
         # --- Set fields ---
         leftImgMsg.header.stamp = now
-        leftImgMsg.header.frame_id = "camera_left" # Frame ID for the left camera
+        leftImgMsg.header.frame_id = "camera_left_optical_frame" # Frame ID for the left camera
         rightImgMsg.header.stamp = now
-        rightImgMsg.header.frame_id = "camera_right" # Frame ID for the right camera
+        rightImgMsg.header.frame_id = "camera_right_optical_frame" # Frame ID for the right camera
 
         # --- Publish ---
         # if rclpy.ok():
@@ -173,7 +173,7 @@ class MyCreateDriver:
         # --- Left CameraInfo ---
         camLeftInfoMsg = CameraInfo()
         camLeftInfoMsg.header.stamp = now
-        camLeftInfoMsg.header.frame_id = 'camera_left' # Must match image frame_id
+        camLeftInfoMsg.header.frame_id = 'camera_left_optical_frame' # Must match image frame_id
         camLeftInfoMsg.width = self.camWidth
         camLeftInfoMsg.height = self.camHeight
         camLeftInfoMsg.distortion_model = "plumb_bob" # Common distortion model (assuming no distortion here)
@@ -186,7 +186,7 @@ class MyCreateDriver:
         # (similar to left, but P might differ if it encodes stereo baseline)
         camRightInfoMsg = CameraInfo()
         camRightInfoMsg.header.stamp = now
-        camRightInfoMsg.header.frame_id = 'camera_right' # Must match image frame_id
+        camRightInfoMsg.header.frame_id = 'camera_right_optical_frame' # Must match image frame_id
         camRightInfoMsg.width = self.camWidth
         camRightInfoMsg.height = self.camHeight
         camRightInfoMsg.distortion_model = "plumb_bob"

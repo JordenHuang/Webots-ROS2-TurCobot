@@ -5,20 +5,58 @@
   </webots>
   <link name="base_link">
   </link>
-  <link name="camera_left">
+
+
+  <!-- <link name="camera_left">
   </link>
   <joint name="base_link_camera_left_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_left"/>
-    <origin xyz="0.125 0.05 0.065" rpy="-1.570796 0 -1.570796"/>
+    <origin xyz="0.125 0.05 0.065" rpy="-1.570796 0.261799 -1.570796"/>
   </joint>
+
   <link name="camera_right">
   </link>
   <joint name="base_link_camera_right_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_right"/>
-    <origin xyz="0.17 -0.05 0.05" rpy="-1.570796 0 -1.570796"/>
+    <origin xyz="0.17 -0.05 0.05" rpy="-1.570796 0.261799 -1.570796"/>
+  </joint> -->
+
+
+  <link name="camera_left">
+    </link>
+  <joint name="base_link_camera_left_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_left"/>
+    <origin xyz="0.125 0.05 0.065" rpy="0.0 0.261799 0.0"/>
+    </joint>
+
+  <link name="camera_left_optical_frame">
+    </link>
+  <joint name="camera_left_to_optical_joint" type="fixed">
+    <parent link="camera_left"/>
+    <child link="camera_left_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.570796 0 -1.570796"/>
   </joint>
+
+  <link name="camera_right">
+  </link>
+  <joint name="base_link_camera_right_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_right"/>
+    <origin xyz="0.17 -0.05 0.05" rpy="0.0 0.261799 0.0"/>
+  </joint>
+
+  <link name="camera_right_optical_frame">
+  </link>
+  <joint name="camera_right_to_optical_joint" type="fixed">
+    <parent link="camera_right"/>
+    <child link="camera_right_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.570796 0 -1.570796"/>
+  </joint>
+
+
   <link name="stand_left_back_1">
     <visual>
       <geometry>

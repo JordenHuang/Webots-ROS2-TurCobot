@@ -104,7 +104,7 @@ def generate_launch_description():
             'subscribe_depth': False,
             'subscribe_stereo': True,
             'publish_tf': True,
-            'subscribe_odom_info': True,
+            # 'subscribe_odom_info': True,
             'approx_sync': True,
             # ---- StereoSGBM Parameters ----
             # 'StereoSGBM/MinDisparity': str(0),          # 最小視差值 (通常為 0)
