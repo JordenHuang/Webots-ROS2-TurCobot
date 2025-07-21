@@ -76,7 +76,7 @@ def generate_launch_description():
                 # 'odom_frame_id': 'odom',
                 'publish_tf': True,
                 'approx_sync': True,       # <-- **SET THIS TO TRUE**
-                'approx_sync_max_interval': 0.05,
+                'approx_sync_max_interval': 0.01,
                 # 'Stereo/MinDisparity': str(0),
                 # 'Stereo/MaxDisparity': str(320),
 

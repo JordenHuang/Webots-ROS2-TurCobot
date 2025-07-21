@@ -1448,6 +1448,6 @@ MyCreate {
   rotation 0 0 0 -1.58
   name "MyCreate"
   controller "<extern>"
-  camera_width 320
-  camera_height 240
+  camera_width 640
+  camera_height 480
 }
