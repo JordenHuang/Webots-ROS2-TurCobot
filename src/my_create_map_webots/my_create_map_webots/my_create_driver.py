@@ -108,9 +108,11 @@ class MyCreateDriver:
             self._left_motor.setVelocity(-vel)
             self._right_motor.setVelocity(-vel)
         elif key == ord('A'):
+            vel = vel / 3
             self._left_motor.setVelocity(-vel)
             self._right_motor.setVelocity(vel)
         elif key == ord('D'):
+            vel = vel / 3
             self._left_motor.setVelocity(vel)
             self._right_motor.setVelocity(-vel)
         else:
@@ -148,13 +150,16 @@ class MyCreateDriver:
         # Left
         npImgLeft = np.frombuffer(imgRawLeft, dtype=np.uint8).reshape(shape)
         bgrImgLeft = cv2.cvtColor(npImgLeft, cv2.COLOR_BGRA2BGR)
+        # bgrImgLeft = cv2.cvtColor(npImgLeft, cv2.COLOR_BGRA2GRAY)
 
         # Right
         npImgRight = np.frombuffer(imgRawRight, dtype=np.uint8).reshape(shape)
         bgrImgRight = cv2.cvtColor(npImgRight, cv2.COLOR_BGRA2BGR)
+        # bgrImgRight = cv2.cvtColor(npImgRight, cv2.COLOR_BGRA2GRAY)
 
         # --- Create message ---
         encoding = 'bgr8' #"passthrough"
+        # encoding = 'mono8'
         leftImgMsg = self.bridge.cv2_to_imgmsg(bgrImgLeft, encoding=encoding)
         rightImgMsg = self.bridge.cv2_to_imgmsg(bgrImgRight, encoding=encoding)
 
@@ -259,7 +264,7 @@ class MyCreateDriver:
         # The simplest approach is to let RTAB-Map figure it out from your TF transforms (base_link to camera_left_link and base_link to camera_right_link).
         # So, provide P matrices that are just like the K matrix, with an extra column of zeros for Tx/Ty.
 
-        self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
+        # self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
         #                           # RTAB-Map will use TF for baseline information
 
         # self.P_right = [
@@ -268,9 +273,9 @@ class MyCreateDriver:
         #     0.0, 0.0, 1.0, 0.0
         # ]
 
-        # self.P_right = np.array([
-        #     fx, 0.0, cx, -fx * self.baseline,
-        #     0.0, fy, cy, 0.0,
-        #     0.0, 0.0, 1.0, 0.0
-        # ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
+        self.P_right = np.array([
+            fx, 0.0, cx, -fx * self.baseline,
+            0.0, fy, cy, 0.0,
+            0.0, 0.0, 1.0, 0.0
+        ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
 

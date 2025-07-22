@@ -76,9 +76,9 @@ def generate_launch_description():
                 # 'odom_frame_id': 'odom',
                 'publish_tf': True,
                 'approx_sync': True,       # <-- **SET THIS TO TRUE**
-                'approx_sync_max_interval': 0.01,
+                'approx_sync_max_interval': 0.05,
                 # 'Stereo/MinDisparity': str(0),
-                # 'Stereo/MaxDisparity': str(320),
+                # 'Stereo/MaxDisparity': str(128),
 
                 # 'Odom/Strategy': str(1),
                 'Vis/MinInliers': str(10),
@@ -106,9 +106,12 @@ def generate_launch_description():
             'publish_tf': True,
             # 'subscribe_odom_info': True,
             'approx_sync': True,
+            'map_always_update': True,
+            'map_empty_ray_tracing': True,
+            # 'MaxGroundHeight': str(0.05),
             # ---- StereoSGBM Parameters ----
             # 'StereoSGBM/MinDisparity': str(0),          # 最小視差值 (通常為 0)
-            # 'StereoSGBM/NumDisparities': str(320),       # 視差範圍，必須是 16 的倍數
+            # 'StereoSGBM/NumDisparities': str(320//2),       # 視差範圍，必須是 16 的倍數
             # 'StereoSGBM/BlockSize': str(window_size),   # 必須是奇數，通常 3-11
             # 'StereoSGBM/P1': str(8*3*window_size**2),   # 視差平滑度參數 (8 * channels * blockSize^2)
             # 'StereoSGBM/P2': str(32*3*window_size**2),  # 視差平滑度參數 (32 * channels * blockSize^2)
@@ -118,7 +121,18 @@ def generate_launch_description():
             # # 'StereoSGBM/SpeckleRange': str(2),         # 視差斑點範圍，用於濾波
             # 'StereoSGBM/PreFilterCap': str(63),         # 預濾波器截斷值
             # 'StereoSGBM/Mode': str(0),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
-'StereoSGBM/Uniquenese': str(0),            # 關閉斑點濾波
+# 'StereoSGBM/Uniquenese': str(0),            # 關閉斑點濾波
+            'Grid/3D':'false', # Use 2D occupancy
+            'Grid/RangeMax':'3',
+            'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
+            'Grid/MaxGroundHeight':'0.1', # All points above 5 cm are obstacles
+            'Grid/MinGroundHeight':'-0.5',
+            'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
+            'Optimizer/GravitySigma':'0', # Disable imu constraints (we are already in 2D)
+            'Grid/ClusterRadius' : '0.05',
+            'Grid/MinClusterSize' : '3',
+            'Grid/NoiseFilteringRadius': '0.05',
+            'Grid/NoiseFilteringMinNeighbors': '5',
 
             # -------------------------------
             # 'Stereo/MinDisparity': str(0),
@@ -133,7 +147,7 @@ def generate_launch_description():
             ('/left/camera_info', '/camera_left/camera_info'),
             ('/right/camera_info', '/camera_right/camera_info'),
         ],
-        # arguments=['-d', "--udebug"]
+        arguments=['-d', "--udebug"]
     )
 
     robot_state_publisher = Node(
@@ -154,7 +168,7 @@ def generate_launch_description():
         # stereo_image_proc,
 
         TimerAction(
-            period=3.0,
+            period=5.0,
             actions=[rtabmap, rtabmap_odom]
         ),
         TimerAction(
