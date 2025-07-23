@@ -109,30 +109,31 @@ def generate_launch_description():
             'map_always_update': True,
             'map_empty_ray_tracing': True,
             # 'MaxGroundHeight': str(0.05),
+'Stereo/DenseStrategy': '1',
             # ---- StereoSGBM Parameters ----
-            # 'StereoSGBM/MinDisparity': str(0),          # 最小視差值 (通常為 0)
-            # 'StereoSGBM/NumDisparities': str(320//2),       # 視差範圍，必須是 16 的倍數
-            # 'StereoSGBM/BlockSize': str(window_size),   # 必須是奇數，通常 3-11
-            # 'StereoSGBM/P1': str(8*3*window_size**2),   # 視差平滑度參數 (8 * channels * blockSize^2)
-            # 'StereoSGBM/P2': str(32*3*window_size**2),  # 視差平滑度參數 (32 * channels * blockSize^2)
-            # 'StereoSGBM/Disp12MaxDiff': str(1),         # 允許左右視差的最大差異
-            # # 'StereoSGBM/UniquenessRatio': str(5),      # 唯一性比率，用於濾波
-            # # 'StereoSGBM/SpeckleWindowSize':str(50),   # 視差斑點窗口大小，用於濾波
-            # # 'StereoSGBM/SpeckleRange': str(2),         # 視差斑點範圍，用於濾波
-            # 'StereoSGBM/PreFilterCap': str(63),         # 預濾波器截斷值
-            # 'StereoSGBM/Mode': str(0),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
-# 'StereoSGBM/Uniquenese': str(0),            # 關閉斑點濾波
+            'StereoSGBM/MinDisparity': str(0),          # 最小視差值 (通常為 0)
+            'StereoSGBM/NumDisparities': str(320//2),       # 視差範圍，必須是 16 的倍數
+            'StereoSGBM/BlockSize': str(window_size),   # 必須是奇數，通常 3-11
+            'StereoSGBM/P1': str(8*3*window_size**2),   # 視差平滑度參數 (8 * channels * blockSize^2)
+            'StereoSGBM/P2': str(32*3*window_size**2),  # 視差平滑度參數 (32 * channels * blockSize^2)
+            'StereoSGBM/Disp12MaxDiff': str(1),         # 允許左右視差的最大差異
+            # 'StereoSGBM/UniquenessRatio': str(5),      # 唯一性比率，用於濾波
+            # 'StereoSGBM/SpeckleWindowSize':str(50),   # 視差斑點窗口大小，用於濾波
+            # 'StereoSGBM/SpeckleRange': str(2),         # 視差斑點範圍，用於濾波
+            'StereoSGBM/PreFilterCap': str(63),         # 預濾波器截斷值
+            'StereoSGBM/Mode': str(3),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
+'StereoSGBM/Uniquenese': str(0),            # 關閉斑點濾波
             'Grid/3D':'false', # Use 2D occupancy
             'Grid/RangeMax':'3',
             'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
-            'Grid/MaxGroundHeight':'0.1', # All points above 5 cm are obstacles
-            'Grid/MinGroundHeight':'-0.5',
-            'Grid/MaxObstacleHeight':'1.0',  # All points over 1 meter are ignored
+            'Grid/MaxGroundHeight':'0', # All points above 5 cm are obstacles
+            'Grid/MinGroundHeight':'0',
+            'Grid/MaxObstacleHeight':'0',  # All points over 1 meter are ignored
             'Optimizer/GravitySigma':'0', # Disable imu constraints (we are already in 2D)
-            'Grid/ClusterRadius' : '0.05',
-            'Grid/MinClusterSize' : '3',
-            'Grid/NoiseFilteringRadius': '0.05',
-            'Grid/NoiseFilteringMinNeighbors': '5',
+            # 'Grid/ClusterRadius' : '0.05',
+            # 'Grid/MinClusterSize' : '3',
+            # 'Grid/NoiseFilteringRadius': '0.05',
+            # 'Grid/NoiseFilteringMinNeighbors': '5',
 
             # -------------------------------
             # 'Stereo/MinDisparity': str(0),
