@@ -668,8 +668,8 @@ Robot {
       children [
         Camera {
           translation 0.17 -0.05 0.0499997
-          # rotation 0 1 0 0.261799
-          rotation 0 1 0 0
+          rotation 0 1 0 0.261799
+          # rotation 0 1 0 0
           children [
             DEF CAMERA_POSE Pose {
               rotation 0 1 0 1.5708
@@ -702,8 +702,8 @@ Robot {
         }
         Camera {
           translation 0.17 0.05 0.05
-          # rotation 0 1 0 0.261799
-          rotation 0 1 0 0
+          rotation 0 1 0 0.261799
+          # rotation 0 1 0 0
           children [
             USE CAMERA_POSE
           ]

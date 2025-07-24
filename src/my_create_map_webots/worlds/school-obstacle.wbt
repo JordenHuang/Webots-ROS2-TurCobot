@@ -1,4 +1,4 @@
-#VRML_SIM R2023b utf8
+#VRML_SIM R2025a utf8
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
@@ -26,10 +26,11 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 EXTERNPROTO "../protos/MyCreate.proto"
 
 WorldInfo {
+  basicTimeStep 16
 }
 Viewpoint {
-  orientation 0.5878361567915664 0.541472483297289 -0.6010459238697057 2.046054053900576
-  position 3.182689820834074 16.248452294598657 5.839044706943839
+  orientation -0.5771969549958947 -0.5771969549958955 0.577656775505086 4.189249903239794
+  position 3.0042829372729964 15.850349345620677 8.095329170481886
   exposure 0.5
 }
 TexturedBackground {
@@ -43,6 +44,7 @@ RectangleArena {
   floorSize 16 32
   floorTileSize 0.9 1.8
   floorAppearance Parquetry {
+    IBLStrength 0
   }
 }
 Solid {
@@ -965,7 +967,6 @@ Door {
   doorAppearance GenericDoorAppearance {
     colorOverride 0.756863 0.490196 0.0666667
   }
-  
 }
 Wall {
   translation 5.55 13 0
@@ -1445,9 +1446,8 @@ TurtleBot3Waffle {
 }
 MyCreate {
   translation 3.3 16.5 0.044
-  rotation 0 0 0 -1.58
-  name "MyCreate"
+  rotation 0 0 1 -1.58
   controller "<extern>"
-  camera_width 640
-  camera_height 480
+  camera_width 360
+  camera_height 280
 }
