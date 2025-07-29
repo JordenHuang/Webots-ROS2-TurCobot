@@ -69,22 +69,27 @@ class MyCreateDriver:
         self.node = rclpy.create_node("my_create_node")
 
         # For CameraInfo (less bandwidth, more critical)
-        info_qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RELIABLE, # Can be reliable
+        # info_qos_profile = QoSProfile(
+        #     reliability=QoSReliabilityPolicy.RELIABLE, # Can be reliable
+        #     history=QoSHistoryPolicy.KEEP_LAST,
+        #     depth=10
+        # )
+        # info_qos_profile = 10
+        reliable_qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.RELIABLE,
             history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=10  # Keep the last 10 messages
         )
-        info_qos_profile = 10
 
         # Publishers
-        # self.camLeftImgPub = self.node.create_publisher(Image, "/MyCreate/camera_left/image_raw", info_qos_profile)
-        # self.camRightImgPub = self.node.create_publisher(Image, "/MyCreate/camera_right/image_raw", info_qos_profile)
-        # self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/MyCreate/camera_left/camera_info", info_qos_profile)
-        # self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/MyCreate/camera_right/camera_info", info_qos_profile)
-        self.camLeftImgPub = self.node.create_publisher(Image, "/camera_left/image_raw", qos_profile_sensor_data)
-        self.camRightImgPub = self.node.create_publisher(Image, "/camera_right/image_raw", qos_profile_sensor_data)
-        self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/camera_left/camera_info", qos_profile_sensor_data)
-        self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/camera_right/camera_info", qos_profile_sensor_data)
+        self.camLeftImgPub = self.node.create_publisher(Image, "/left/stereo/image_raw", reliable_qos_profile)
+        self.camRightImgPub = self.node.create_publisher(Image, "/right/stereo/image_raw", reliable_qos_profile)
+        self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/left/stereo/camera_info", reliable_qos_profile)
+        self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/right/stereo/camera_info", reliable_qos_profile)
+        # self.camLeftImgPub = self.node.create_publisher(Image, "/camera_left/image_raw", reliable_qos_profile)
+        # self.camRightImgPub = self.node.create_publisher(Image, "/camera_right/image_raw", reliable_qos_profile)
+        # self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/camera_left/camera_info", reliable_qos_profile)
+        # self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/camera_right/camera_info", reliable_qos_profile)
 
         # My own /clock publisher
         # self.clockPub = self.node.create_publisher(Clock, "/clock", 10)
@@ -264,7 +269,7 @@ class MyCreateDriver:
         # The simplest approach is to let RTAB-Map figure it out from your TF transforms (base_link to camera_left_link and base_link to camera_right_link).
         # So, provide P matrices that are just like the K matrix, with an extra column of zeros for Tx/Ty.
 
-        # self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
+        self.P_right = self.P_left # For initial setup, assume they are the same in terms of projection
         #                           # RTAB-Map will use TF for baseline information
 
         # self.P_right = [
@@ -273,9 +278,9 @@ class MyCreateDriver:
         #     0.0, 0.0, 1.0, 0.0
         # ]
 
-        self.P_right = np.array([
-            fx, 0.0, cx, -fx * self.baseline,
-            0.0, fy, cy, 0.0,
-            0.0, 0.0, 1.0, 0.0
-        ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
+        # self.P_right = np.array([
+        #     fx, 0.0, cx, -fx * self.baseline,
+        #     0.0, fy, cy, 0.0,
+        #     0.0, 0.0, 1.0, 0.0
+        # ], dtype=np.float64).flatten().tolist() # Flatten for CameraInfo.P
 

@@ -4,111 +4,121 @@ from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from webots_ros2_driver.webots_launcher import WebotsLauncher
 from webots_ros2_driver.webots_controller import WebotsController
-from webots_ros2_driver.urdf_spawner import URDFSpawner
 from launch_ros.actions import Node
-from launch_ros.actions import ComposableNodeContainer, LoadComposableNodes
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import TimerAction
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch.conditions import LaunchConfigurationNotEquals, LaunchConfigurationEquals
+from launch.actions import IncludeLaunchDescription
+from launch.substitutions import PathJoinSubstitution
+
 
 def generate_launch_description():
     package_dir = get_package_share_directory('my_create_map_webots')
     robot_description_path = os.path.join(package_dir, 'resource', 'MyCreate.urdf')
-    supervisor_description_path = os.path.join(package_dir, 'resource', 'MySupervisor.urdf')
     world_path = os.path.join(package_dir, 'worlds', 'school-obstacle.wbt')
-    # world_path = os.path.join(package_dir, 'worlds', 'alpha.wbt')
 
     webots = WebotsLauncher(
         world=world_path,
         ros2_supervisor=True
     )
 
-    # my_supervisor = Node(
-    #     package='my_create_map_webots',
-    #     executable='MySupervisorDriver.py',
-    #     namespace='MySupervisor',
-    #     remappings=[('/MySupervisor/clock', '/clock')],
-    # )
-
     my_robot_driver = WebotsController(
         robot_name='MyCreate',
         parameters=[{
-                'robot_description': robot_description_path,
-                'use_sim_time': True,
+            'robot_description': robot_description_path,
+            'use_sim_time': True,
         }],
         respawn=True
     )
 
-    # stereo_image_proc = ComposableNodeContainer(
-    #     name='stereo_proc_container',
-    #     namespace='',
-    #     package='rclcpp_components',
-    #     executable='component_container_mt',
-    #     composable_node_descriptions=[
-    #         ComposableNode(
-    #             package='stereo_image_proc',
-    #             plugin='stereo_image_proc::DisparityNode',
-    #             name='stereo_image_proc',
-    #             remappings=[
-    #                 ('left/image_rect', '/camera_left/image_raw'),
-    #                 ('right/image_rect', '/camera_right/image_raw'),
-    #                 ('left/camera_info', '/camera_left/camera_info'),
-    #                 ('right/camera_info', '/camera_right/camera_info'),
-    #             ],
-    #             parameters=[{
-    #                 'use_sim_time': True,
-    #                 'approximate_sync': True,
-    #             }]
-    #         )
-    #     ],
-    #     output='screen',
-    # )
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        parameters=[{
+            'use_sim_time': True,
+            'robot_description': open(robot_description_path).read(),
+        }]
+    )
 
-    rtabmap_odom = Node(
+    stereo_image_proc = IncludeLaunchDescription(
+        PathJoinSubstitution([
+            FindPackageShare('stereo_image_proc'),
+            'launch',
+            'stereo_image_proc.launch.py'
+        ]),
+        launch_arguments={
+            'namespace': 'stereo',
+        }.items()
+    )
+
+    # Stereo Odometry Node
+    stereo_odometry_node = Node(
         package='rtabmap_odom',
         executable='stereo_odometry',
         name='stereo_odometry',
-        parameters=[{
-                'use_sim_time': True,
-                'frame_id': 'base_link',
-                # 'odom_frame_id': 'odom',
-                'publish_tf': True,
-                'approx_sync': True,       # <-- **SET THIS TO TRUE**
-                'approx_sync_max_interval': 0.05,
-                # 'Stereo/MinDisparity': str(0),
-                # 'Stereo/MaxDisparity': str(128),
-
-                # 'Odom/Strategy': str(1),
-                'Vis/MinInliers': str(10),
-                # 'Vis/InlierDistance': str(0.1),
-            }],
-        remappings=[
-            ('/left/image_rect', '/camera_left/image_raw'),
-            ('/right/image_rect', '/camera_right/image_raw'),
-            ('/left/camera_info', '/camera_left/camera_info'),
-            ('/right/camera_info', '/camera_right/camera_info'),
-        ]
-    )
-
-    # 啟動 RTAB-Map（stereo 模式）
-    window_size = 5
-    rtabmap = Node(
-        package='rtabmap_slam',
-        executable='rtabmap',
-        name='rtabmap',
+        output='screen',
         parameters=[{
             'use_sim_time': True,
             'frame_id': 'base_link',
+            # 'odom_frame_id': 'odom',
+            'publish_tf': True,
+            'approx_sync': True,
+            'approx_sync_max_interval': 0.05,
+
+# 'Stereo/DenseStrategy' : "1",     # [0=cv::StereoBM, 1=cv::StereoSGBM]
+# 'Stereo/MaxDisparity' : "160",  # [Maximum disparity.]
+# 'Stereo/MinDisparity' : "0",    # [Minimum disparity.]
+
+            # 1. Feature Detection: Increase the number of features to track. More features = more chances for good matches.
+            # 'Vis/MaxFeatures': '5000',  # Default is 1000
+
+            # 2. Inlier Threshold: Minimum number of features that must be successfully tracked.
+            # The error was "18/20", so let's lower the requirement slightly to make it more tolerant of brief texture loss.
+            'Vis/MinInliers': '15',     # Default is 20
+
+            # 3. Motion Estimation: Tell the odometry to assume the robot is on a flat plane.
+            # This adds a strong prior that helps reject bad feature matches that imply flying or going underground.
+            'Reg/Force3DoF': 'true',
+
+            # 4. Bundle Adjustment: This refines the pose but can sometimes fail with noisy features.
+            # Let's switch to a more robust (but less accurate) mode for now to get a stable base.
+            # 'OdomF2M/BundleAdjustment': '0', # 0=off, 1=refine motion, 2=refine structure
+
+            'Odom/Strategy': '1',
+            'Vis/CorType': '1',
+            'OdomF2M/MaxSize': '1000',
+            'Vis/MaxFeatures': '600',
+        }],
+        remappings=[
+            ('left/image_rect', '/left/stereo/image_rect_color'),
+            ('right/image_rect', '/right/stereo/image_rect_color'),
+            ('left/camera_info', '/left/stereo/camera_info'),
+            ('right/camera_info', '/right/stereo/camera_info'),
+        ]
+    )
+
+    # RTAB-Map SLAM Node
+    window_size = 5
+    rtabmap_slam_node = Node(
+        package='rtabmap_slam',
+        executable='rtabmap',
+        name='rtabmap',
+        output='screen',
+        parameters=[{
+            'use_sim_time': True,
             'subscribe_depth': False,
             'subscribe_stereo': True,
+            'subscribe_odom_info': True,
+            'frame_id': 'base_link',
+            # 'map_frame_id': 'map',
             'publish_tf': True,
-            # 'subscribe_odom_info': True,
             'approx_sync': True,
+            'wait_for_transform_duration': 0.2,
+
             'map_always_update': True,
             'map_empty_ray_tracing': True,
-            # 'MaxGroundHeight': str(0.05),
 
 'Stereo/DenseStrategy': '1',
             # ---- StereoSGBM Parameters ----
@@ -124,61 +134,60 @@ def generate_launch_description():
             'StereoSGBM/PreFilterCap': str(63),         # 預濾波器截斷值
             'StereoSGBM/Mode': str(3),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
 
-            'Grid/3D':'false', # Use 2D occupancy
-            'Grid/NormalsSegmentation':'false', # Use passthrough filter to detect obstacles
-            'Grid/MaxGroundHeight':'0', # All points above 5 cm are obstacles
-            'Grid/MinGroundHeight':'-0.1',
-            'Grid/MaxObstacleHeight':'0',  # All points over 1 meter are ignored
 
-            'Optimizer/GravitySigma':'0', # Disable imu constraints (we are already in 2D)
+'Reg/Force3DoF': 'true',
+'Optimizer/Slam2D': 'true',
 
-            # 'Grid/ClusterRadius' : '0.1',
-            # 'Grid/MinClusterSize' : '5',
-            # 'Grid/NoiseFilteringRadius': '0.1',
-            # 'Grid/NoiseFilteringMinNeighbors': '2',
-            # 'Grid/RayTracing' : 'true',
+            # 'Grid/3D':'false', # Use 2D occupancy
+            # 'Grid/MaxHeight': '1',
+            # 'Grid/MaxGroundHeight': '0.05',
+            # 'Grid/MaxObstacleHeight': '2.0',
+            # 'Grid/MaxGroundAngle': '60',
 
-            # -------------------------------
-            # 'Stereo/MinDisparity': str(0),
-            # 'Stereo/MaxDisparity': str(320),
-
-            'Vis/MinInliers': str(10),
-            'Vis/MaxFeatures': str(10000),
-            # 'wait_for_transform': 0.5,
+            'Vis/MinInliers': '15',     # Default is 20
         }],
         remappings=[
-            ('/left/image_rect', '/camera_left/image_raw'),
-            ('/right/image_rect', '/camera_right/image_raw'),
-            ('/left/camera_info', '/camera_left/camera_info'),
-            ('/right/camera_info', '/camera_right/camera_info'),
+            ('left/image_rect', '/left/stereo/image_rect_color'),
+            ('right/image_rect', '/right/stereo/image_rect_color'),
+            ('left/camera_info', '/left/stereo/camera_info'),
+            ('right/camera_info', '/right/stereo/camera_info'),
+            # ('odom', '/odom'),
         ],
-        # arguments=['-d', "--udebug"]
+        arguments=['-d'] #, "--udebug"
     )
 
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
+    rtabmap_viz = Node(
+        package='rtabmap_viz',
+        executable='rtabmap_viz',
+        name='rtabmap_viz',
         parameters=[{
-            'use_sim_time': True,
-            'robot_description': open(robot_description_path).read(),
-        }]
+            'subscribe_stereo': True,
+            'subscribe_odom_info': True,
+        }],
+        remappings=[
+            ('left/image_rect', '/left/stereo/image_rect_color'),
+            ('right/image_rect', '/right/stereo/image_rect_color'),
+            ('left/camera_info', '/left/stereo/camera_info'),
+            ('right/camera_info', '/right/stereo/camera_info'),
+        ],
     )
 
     return LaunchDescription([
         webots,
         webots._supervisor,
         my_robot_driver,
-        # my_supervisor,
-        # stereo_image_proc,
 
         TimerAction(
-            period=5.0,
-            actions=[rtabmap, rtabmap_odom]
+            period=2.0,
+            actions=[rtabmap_viz,]
+        ),
+        TimerAction(
+            period=3.0,
+            actions=[stereo_image_proc,]
         ),
         TimerAction(
             period=5.0,
-            actions=[robot_state_publisher]
+            actions=[rtabmap_slam_node, stereo_odometry_node, robot_state_publisher]
         ),
         launch.actions.RegisterEventHandler(
             event_handler=launch.event_handlers.OnProcessExit(
