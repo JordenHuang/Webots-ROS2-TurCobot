@@ -82,10 +82,10 @@ class MyCreateDriver:
         )
 
         # Publishers
-        self.camLeftImgPub = self.node.create_publisher(Image, "/left/stereo/image_raw", reliable_qos_profile)
-        self.camRightImgPub = self.node.create_publisher(Image, "/right/stereo/image_raw", reliable_qos_profile)
-        self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/left/stereo/camera_info", reliable_qos_profile)
-        self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/right/stereo/camera_info", reliable_qos_profile)
+        self.camLeftImgPub = self.node.create_publisher(Image, "/left/image_raw", reliable_qos_profile)
+        self.camRightImgPub = self.node.create_publisher(Image, "/right/image_raw", reliable_qos_profile)
+        self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/left/camera_info", reliable_qos_profile)
+        self.camRightInfoPub = self.node.create_publisher(CameraInfo, "/right/camera_info", reliable_qos_profile)
         # self.camLeftImgPub = self.node.create_publisher(Image, "/camera_left/image_raw", reliable_qos_profile)
         # self.camRightImgPub = self.node.create_publisher(Image, "/camera_right/image_raw", reliable_qos_profile)
         # self.camLeftInfoPub = self.node.create_publisher(CameraInfo, "/camera_left/camera_info", reliable_qos_profile)

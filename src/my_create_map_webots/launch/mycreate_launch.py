@@ -41,7 +41,7 @@ def generate_launch_description():
             'robot_description': open(robot_description_path).read(),
         }]
     )
-
+    window_size = 5
     stereo_image_proc = IncludeLaunchDescription(
         PathJoinSubstitution([
             FindPackageShare('stereo_image_proc'),
@@ -49,8 +49,19 @@ def generate_launch_description():
             'stereo_image_proc.launch.py'
         ]),
         launch_arguments={
-            'namespace': 'stereo',
-        }.items()
+            # 'namespace': 'stereo',
+            # 'approximate_sync': 'True',
+            'stereo_algorithm': '1',
+            'sgbm_mode': '2',
+
+            'disparity_range': '128',       # 視差範圍，必須是 16 的倍數
+            'correlation_window_size': str(window_size),   # 必須是奇數，通常 3-11
+            'P1': str(float(8*3*window_size**2)),   # 視差平滑度參數 (8 * channels * blockSize^2)
+            'P2': str(float(32*3*window_size**2)),  # 視差平滑度參數 (32 * channels * blockSize^2)
+            'disp12_max_diff': str(1),         # 允許左右視差的最大差異
+            'uniqueness_ratio': str(0.0),      # 唯一性比率，用於濾波
+            'prefilter_cap': str(63),         # 預濾波器截斷值
+        }.items(),
     )
 
     # Stereo Odometry Node
@@ -64,7 +75,7 @@ def generate_launch_description():
             'frame_id': 'base_link',
             # 'odom_frame_id': 'odom',
             'publish_tf': True,
-            'approx_sync': True,
+            # 'approx_sync': True,
             'approx_sync_max_interval': 0.05,
 
 # 'Stereo/DenseStrategy' : "1",     # [0=cv::StereoBM, 1=cv::StereoSGBM]
@@ -92,12 +103,29 @@ def generate_launch_description():
             'Vis/MaxFeatures': '600',
         }],
         remappings=[
-            ('left/image_rect', '/left/stereo/image_rect_color'),
-            ('right/image_rect', '/right/stereo/image_rect_color'),
-            ('left/camera_info', '/left/stereo/camera_info'),
-            ('right/camera_info', '/right/stereo/camera_info'),
+            ('left/image_rect', '/left/image_rect_color'),
+            ('right/image_rect', '/right/image_rect_color'),
+            ('left/camera_info', '/left/camera_info'),
+            ('right/camera_info', '/right/camera_info'),
         ]
     )
+
+    # rtabmap_disparity_to_depth = Node(
+    #     package='rtabmap_util',
+    #     executable='disparity_to_depth',
+    #     name='rtabmap_disparity_to_depth',
+    # )
+
+    # rtabmap_pointcloud_to_depthimage = Node(
+    #     package='rtabmap_util',
+    #     executable='pointcloud_to_depthimage',
+    #     name='rtabmap_pointcloud_to_depthimage',
+    #     namespace='depthImage',
+    #     remappings=[
+    #         ('camera_info', '/left/camera_info'),
+    #         ('cloud', '/points2')
+    #     ],
+    # )
 
     # RTAB-Map SLAM Node
     window_size = 5
@@ -108,13 +136,16 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'use_sim_time': True,
-            'subscribe_depth': False,
+            'subscribe_laserScan': False,
+            # 'subscribe_depth': True,
             'subscribe_stereo': True,
             'subscribe_odom_info': True,
+            'sync_queue_size': 30,
+            'topic_queue_size': 30,
             'frame_id': 'base_link',
             # 'map_frame_id': 'map',
             'publish_tf': True,
-            'approx_sync': True,
+            # 'approx_sync': True,
             'wait_for_transform_duration': 0.2,
 
             'map_always_update': True,
@@ -147,11 +178,14 @@ def generate_launch_description():
             'Vis/MinInliers': '15',     # Default is 20
         }],
         remappings=[
-            ('left/image_rect', '/left/stereo/image_rect_color'),
-            ('right/image_rect', '/right/stereo/image_rect_color'),
-            ('left/camera_info', '/left/stereo/camera_info'),
-            ('right/camera_info', '/right/stereo/camera_info'),
-            # ('odom', '/odom'),
+            ('left/image_rect', '/left/image_rect_color'),
+            ('right/image_rect', '/right/image_rect_color'),
+            ('left/camera_info', '/left/camera_info'),
+            ('right/camera_info', '/right/camera_info'),
+            ('odom', '/odom'),
+            # ('rgb/image', '/left/image_rect_color'),
+            # ('rgb/camera_info', '/left/camera_info'),
+            # ('depth/image', '/depthImage/image'),
         ],
         arguments=['-d'] #, "--udebug"
     )
@@ -161,14 +195,19 @@ def generate_launch_description():
         executable='rtabmap_viz',
         name='rtabmap_viz',
         parameters=[{
+            'subscribe_laserScan': False,
+            # 'subscribe_depth': True,
             'subscribe_stereo': True,
             'subscribe_odom_info': True,
         }],
         remappings=[
-            ('left/image_rect', '/left/stereo/image_rect_color'),
-            ('right/image_rect', '/right/stereo/image_rect_color'),
-            ('left/camera_info', '/left/stereo/camera_info'),
-            ('right/camera_info', '/right/stereo/camera_info'),
+            ('left/image_rect', '/left/image_rect_color'),
+            ('right/image_rect', '/right/image_rect_color'),
+            ('left/camera_info', '/left/camera_info'),
+            ('right/camera_info', '/right/camera_info'),
+            # ('rgb/image', '/left/image_rect_color'),
+            # ('rgb/camera_info', '/left/camera_info'),
+            # ('depth/image', '/depthImage/image'),
         ],
     )
 
@@ -178,15 +217,15 @@ def generate_launch_description():
         my_robot_driver,
 
         TimerAction(
-            period=2.0,
-            actions=[rtabmap_viz,]
+            period=4.0,
+            actions=[rtabmap_viz]
         ),
         TimerAction(
-            period=3.0,
-            actions=[stereo_image_proc,]
+            period=6.0,
+            actions=[stereo_image_proc], #, rtabmap_pointcloud_to_depthimage] #, rtabmap_disparity_to_depth
         ),
         TimerAction(
-            period=5.0,
+            period=7.0,
             actions=[rtabmap_slam_node, stereo_odometry_node, robot_state_publisher]
         ),
         launch.actions.RegisterEventHandler(
