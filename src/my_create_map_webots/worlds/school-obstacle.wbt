@@ -44,7 +44,7 @@ RectangleArena {
   floorSize 16 32
   floorTileSize 0.9 1.8
   floorAppearance Parquetry {
-    IBLStrength 0
+    IBLStrength 1
   }
 }
 Solid {

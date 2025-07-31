@@ -41,7 +41,9 @@ def generate_launch_description():
             'robot_description': open(robot_description_path).read(),
         }]
     )
-    window_size = 5
+    window_size = 13
+    p1 = 216 #8 * 3 * window_size**2
+    p2 = 864 #32 * 3 * window_size**2
     stereo_image_proc = IncludeLaunchDescription(
         PathJoinSubstitution([
             FindPackageShare('stereo_image_proc'),
@@ -54,15 +56,27 @@ def generate_launch_description():
             'stereo_algorithm': '1',
             'sgbm_mode': '2',
 
-            'disparity_range': '128',       # 視差範圍，必須是 16 的倍數
+            'disparity_range': '192',       # 視差範圍，必須是 16 的倍數
             'correlation_window_size': str(window_size),   # 必須是奇數，通常 3-11
-            'P1': str(float(8*3*window_size**2)),   # 視差平滑度參數 (8 * channels * blockSize^2)
-            'P2': str(float(32*3*window_size**2)),  # 視差平滑度參數 (32 * channels * blockSize^2)
-            'disp12_max_diff': str(1),         # 允許左右視差的最大差異
-            'uniqueness_ratio': str(0.0),      # 唯一性比率，用於濾波
-            'prefilter_cap': str(63),         # 預濾波器截斷值
+            'P1': "{:.1f}".format(p1),   # 視差平滑度參數 (8 * channels * blockSize^2)
+            'P2': "{:.1f}".format(p2),  # 視差平滑度參數 (32 * channels * blockSize^2)
+            'disp12_max_diff': '1',         # 允許左右視差的最大差異
+            'speckle_window_size': '200',
+            'speckle_range': '2',
+            'uniqueness_ratio': "{:.1f}".format(10),      # 唯一性比率，用於濾波
+            'prefilter_cap': '63',         # 預濾波器截斷值
         }.items(),
     )
+
+    disparity_image_view = Node(
+        package='image_view',
+        executable='disparity_view',
+        name='disparity_image_view',
+        remappings=[
+            ('image', '/disparity')
+        ]
+    )
+
 
     # Stereo Odometry Node
     stereo_odometry_node = Node(
@@ -78,9 +92,12 @@ def generate_launch_description():
             # 'approx_sync': True,
             'approx_sync_max_interval': 0.05,
 
-# 'Stereo/DenseStrategy' : "1",     # [0=cv::StereoBM, 1=cv::StereoSGBM]
-# 'Stereo/MaxDisparity' : "160",  # [Maximum disparity.]
-# 'Stereo/MinDisparity' : "0",    # [Minimum disparity.]
+'Stereo/DenseStrategy' : "1",     # [0=cv::StereoBM, 1=cv::StereoSGBM]
+'Stereo/MaxDisparity' : "192",  # [Maximum disparity.]
+'Stereo/MinDisparity' : "0",    # [Minimum disparity.]
+# 'Stereo/OpticalFlow' : "false",
+'Stereo/WinHeight' : "15",
+'Stereo/WinWidth' : "15",
 
             # 1. Feature Detection: Increase the number of features to track. More features = more chances for good matches.
             # 'Vis/MaxFeatures': '5000',  # Default is 1000
@@ -110,25 +127,28 @@ def generate_launch_description():
         ]
     )
 
-    # rtabmap_disparity_to_depth = Node(
-    #     package='rtabmap_util',
-    #     executable='disparity_to_depth',
-    #     name='rtabmap_disparity_to_depth',
-    # )
+    rtabmap_disparity_to_depth = Node(
+        package='rtabmap_util',
+        executable='disparity_to_depth',
+        name='rtabmap_disparity_to_depth',
+        namespace='disparity2depth',
+        remappings=[
+            ('disparity', '/disparity')
+        ]
+    )
 
-    # rtabmap_pointcloud_to_depthimage = Node(
-    #     package='rtabmap_util',
-    #     executable='pointcloud_to_depthimage',
-    #     name='rtabmap_pointcloud_to_depthimage',
-    #     namespace='depthImage',
-    #     remappings=[
-    #         ('camera_info', '/left/camera_info'),
-    #         ('cloud', '/points2')
-    #     ],
-    # )
+    rtabmap_pointcloud_to_depthimage = Node(
+        package='rtabmap_util',
+        executable='pointcloud_to_depthimage',
+        name='rtabmap_pointcloud_to_depthimage',
+        namespace='pointcloud2depthImage',
+        remappings=[
+            ('camera_info', '/left/camera_info'),
+            ('cloud', '/points2')
+        ],
+    )
 
     # RTAB-Map SLAM Node
-    window_size = 5
     rtabmap_slam_node = Node(
         package='rtabmap_slam',
         executable='rtabmap',
@@ -154,16 +174,16 @@ def generate_launch_description():
 'Stereo/DenseStrategy': '1',
             # ---- StereoSGBM Parameters ----
             'StereoSGBM/MinDisparity': str(0),          # 最小視差值 (通常為 0)
-            'StereoSGBM/NumDisparities': str(320//2),       # 視差範圍，必須是 16 的倍數
+            'StereoSGBM/NumDisparities': str(192),       # 視差範圍，必須是 16 的倍數
             'StereoSGBM/BlockSize': str(window_size),   # 必須是奇數，通常 3-11
-            'StereoSGBM/P1': str(8*3*window_size**2),   # 視差平滑度參數 (8 * channels * blockSize^2)
-            'StereoSGBM/P2': str(32*3*window_size**2),  # 視差平滑度參數 (32 * channels * blockSize^2)
+            'StereoSGBM/P1': str(p1), #str(8*3*window_size**2),   # 視差平滑度參數 (8 * channels * blockSize^2)
+            'StereoSGBM/P2': str(p2), # str(32*3*window_size**2),  # 視差平滑度參數 (32 * channels * blockSize^2)
             'StereoSGBM/Disp12MaxDiff': str(1),         # 允許左右視差的最大差異
-            'StereoSGBM/UniquenessRatio': str(0),      # 唯一性比率，用於濾波
-            # 'StereoSGBM/SpeckleWindowSize':str(50),   # 視差斑點窗口大小，用於濾波
-            # 'StereoSGBM/SpeckleRange': str(2),         # 視差斑點範圍，用於濾波
+            'StereoSGBM/UniquenessRatio': str(10),      # 唯一性比率，用於濾波
+            'StereoSGBM/SpeckleWindowSize':str(200),   # 視差斑點窗口大小，用於濾波
+            'StereoSGBM/SpeckleRange': str(2),         # 視差斑點範圍，用於濾波
             'StereoSGBM/PreFilterCap': str(63),         # 預濾波器截斷值
-            'StereoSGBM/Mode': str(3),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
+            'StereoSGBM/Mode': str(2),                  # 0: SGBM_MODE_SGBM, 1: SGBM_MODE_HH, 2: SGBM_MODE_SGBM_3WAY, 3: SGBM_MODE_HH4
 
 
 'Reg/Force3DoF': 'true',
@@ -185,7 +205,8 @@ def generate_launch_description():
             ('odom', '/odom'),
             # ('rgb/image', '/left/image_rect_color'),
             # ('rgb/camera_info', '/left/camera_info'),
-            # ('depth/image', '/depthImage/image'),
+            # # ('depth/image', '/pointcloud2depthImage/image'),
+            # ('depth/image', '/disparity2depth/depth'),
         ],
         arguments=['-d'] #, "--udebug"
     )
@@ -196,18 +217,18 @@ def generate_launch_description():
         name='rtabmap_viz',
         parameters=[{
             'subscribe_laserScan': False,
-            # 'subscribe_depth': True,
-            'subscribe_stereo': True,
+            'subscribe_depth': True,
+            # 'subscribe_stereo': True,
             'subscribe_odom_info': True,
         }],
         remappings=[
-            ('left/image_rect', '/left/image_rect_color'),
-            ('right/image_rect', '/right/image_rect_color'),
-            ('left/camera_info', '/left/camera_info'),
-            ('right/camera_info', '/right/camera_info'),
-            # ('rgb/image', '/left/image_rect_color'),
-            # ('rgb/camera_info', '/left/camera_info'),
-            # ('depth/image', '/depthImage/image'),
+            # ('left/image_rect', '/left/image_rect_color'),
+            # ('right/image_rect', '/right/image_rect_color'),
+            # ('left/camera_info', '/left/camera_info'),
+            # ('right/camera_info', '/right/camera_info'),
+            ('rgb/image', '/left/image_rect_color'),
+            ('rgb/camera_info', '/left/camera_info'),
+            ('depth/image', '/pointcloud2depthImage/image'),
         ],
     )
 
@@ -216,13 +237,18 @@ def generate_launch_description():
         webots._supervisor,
         my_robot_driver,
 
-        TimerAction(
-            period=4.0,
-            actions=[rtabmap_viz]
-        ),
+        # TimerAction(
+        #     period=4.0,
+        #     actions=[rtabmap_viz]
+        # ),
         TimerAction(
             period=6.0,
-            actions=[stereo_image_proc], #, rtabmap_pointcloud_to_depthimage] #, rtabmap_disparity_to_depth
+            actions=[
+                stereo_image_proc,
+                rtabmap_pointcloud_to_depthimage,
+                rtabmap_disparity_to_depth,
+                disparity_image_view,
+            ]
         ),
         TimerAction(
             period=7.0,
@@ -235,3 +261,13 @@ def generate_launch_description():
             )
         )
     ])
+
+
+# disparity_range = 160
+# mode = sgbm_3way
+# correlation_window_size = 5
+# P1 = 8*3*5**2
+# P2 = 32*3*5**2
+# disp12_max_diff = 1
+# uniqueness_ratio = 0.0
+# prefilter_cap = 63

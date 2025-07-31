@@ -14,7 +14,7 @@ PROTO MyCreate [
   field SFString   customData      ""                       # Is `Robot.customData`.
   field SFBool     supervisor      FALSE                    # Is `Robot.supervisor`.
   field SFBool     synchronization TRUE                     # Is `Robot.synchronization`.
-  field SFFloat      camera_fieldOfView   0.84         # Is `Camera.fieldOfView`.
+  field SFFloat      camera_fieldOfView   1         # Is `Camera.fieldOfView`.
   field SFInt32      camera_width         640          # Is `Camera.width`.
   field SFInt32      camera_height        480           # Is `Camera.height`.
   field SFBool       camera_antiAliasing  FALSE        # Is `Camera.antiAliasing`.
@@ -692,7 +692,6 @@ Robot {
           fieldOfView IS camera_fieldOfView
           width IS camera_width
           height IS camera_height
-          # near 0.0055
           antiAliasing IS camera_antiAliasing
           motionBlur IS camera_motionBlur
           noise IS camera_noise
@@ -711,7 +710,6 @@ Robot {
           fieldOfView IS camera_fieldOfView
           width IS camera_width
           height IS camera_height
-          # near 0.0055
           antiAliasing IS camera_antiAliasing
           motionBlur IS camera_motionBlur
           noise IS camera_noise
