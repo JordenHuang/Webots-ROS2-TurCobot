@@ -32,6 +32,9 @@ setup(
 
         # PROTO (create_textures)
         (f'share/{package_name}/protos/create_textures', glob('protos/create_textures/*')),
+
+        (f'share/{package_name}/textures/SofaLeather', glob('textures/SofaLeather/*')),
+        (f'share/{package_name}/textures/WoodFloor', glob('textures/WoodFloor/*')),
     ],
     
     install_requires=['setuptools'],
