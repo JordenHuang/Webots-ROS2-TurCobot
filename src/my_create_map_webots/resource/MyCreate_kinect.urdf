@@ -28,7 +28,9 @@
     <parent link="base_link"/>
     <child link="Kinect"/>
     <!-- Position the camera 14cm forward and 10cm up from the base_link origin -->
-    <origin xyz="0.14 0 0.10" rpy="0 0 0"/>
+    <!-- <origin xyz="0.14 0 0.10" rpy="0 0 0"/> -->
+    <origin xyz="0.14 0 0.10" rpy="0 0.261799 0"/>
+    <!-- <origin xyz="0.14 0 0.10" rpy="0 0.174532 0"/> -->
   </joint>
 
 
@@ -37,11 +39,21 @@
   <link name="camera_rgb_frame"/>
 
   <!-- This joint connects the optical frame to the camera BODY -->
-  <joint name="kinect_to_rgb_joint" type="fixed">
+  <joint name="kinect_to_camera_rgb_joint" type="fixed">
     <parent link="Kinect"/> <!-- CORRECTED: Parent is now the camera body -->
     <child link="camera_rgb_frame"/>
     <!-- The origin is now relative to the Kinect link.
          The standard ROS optical rotation is applied here. -->
+    <!-- <origin xyz="0 0 0" rpy="0.0 -0.261799 0.0"/> -->
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- camera rgb optical frame -->
+  <link name="camera_rgb_optical_frame">
+  </link>
+  <joint name="camera_rgb_to_camera_rgb_optical_joint" type="fixed">
+    <parent link="camera_rgb_frame"/>
+    <child link="camera_rgb_optical_frame"/>
     <origin xyz="0 0 0" rpy="-1.570796 0 -1.570796"/>
   </joint>
 
@@ -51,14 +63,24 @@
   <link name="camera_depth_frame"/>
 
   <!-- This joint connects the depth optical frame to the camera BODY -->
-  <joint name="kinect_to_depth_joint" type="fixed">
+  <joint name="kinect_to_camera_depth_joint" type="fixed">
     <parent link="Kinect"/> <!-- CORRECTED: Parent is now the camera body -->
     <child link="camera_depth_frame"/>
     <!-- Assume the depth sensor is 2.5cm to the left of the RGB sensor (relative to Kinect body) -->
     <!-- <origin xyz="0 -0.025 0" rpy="-1.570796 0 -1.570796"/> -->
-    <origin xyz="0 -0.025 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <!-- <origin xyz="0 0 0" rpy="0.0 -0.261799 0.0"/> -->
   </joint>
 
+  <!-- camera rgb optical frame -->
+  <link name="camera_depth_optical_frame">
+  </link>
+  <joint name="camera_depth_to_camera_depth_optical_joint" type="fixed">
+    <parent link="camera_depth_frame"/>
+    <child link="camera_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.570796 0 -1.570796"/>
+  </joint>
+  <!-- End camera thingy -->
 
   <link name="stand_left_back_1">
     <visual>

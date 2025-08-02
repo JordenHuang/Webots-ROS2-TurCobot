@@ -150,7 +150,7 @@ class MyCreateDriverKinect:
 
         # --- Set fields ---
         imgMsg.header.stamp = now
-        imgMsg.header.frame_id = "camera_rgb_frame" # Frame ID for the left camera
+        imgMsg.header.frame_id = "camera_rgb_optical_frame" # Frame ID for the left camera
 
         # --- Publish ---
         self.camImgPub.publish(imgMsg)
@@ -159,7 +159,7 @@ class MyCreateDriverKinect:
         # --- Left CameraInfo ---
         camInfoMsg = CameraInfo()
         camInfoMsg.header.stamp = now
-        camInfoMsg.header.frame_id = 'camera_rgb_frame' # Must match image frame_id
+        camInfoMsg.header.frame_id = 'camera_rgb_optical_frame' # Must match image frame_id
         camInfoMsg.width = self.camWidth
         camInfoMsg.height = self.camHeight
         camInfoMsg.distortion_model = "plumb_bob" # Common distortion model (assuming no distortion here)
@@ -184,7 +184,7 @@ class MyCreateDriverKinect:
 
         # --- Set fields ---
         imgMsg.header.stamp = now
-        imgMsg.header.frame_id = "camera_depth_frame" # Frame ID for the left camera
+        imgMsg.header.frame_id = "camera_depth_optical_frame" # Frame ID for the left camera
 
         # --- Publish ---
         self.camDepthPub.publish(imgMsg)
@@ -248,7 +248,7 @@ class MyCreateDriverKinect:
         # camera_left translation: 0.17 0.05 0.05
         # camera_right translation: 0.17 -0.05 0.0499997
         # The baseline is 0.05 - (-0.05) = 0.1m along the Y-axis (vertical stereo)
-        self.baseline = 0.1 # meters
+        self.baseline = 0.075 # meters
 
         # IMPORTANT for RTAB-Map:
         # If RTAB-Map's internal stereo module expects a P matrix with the baseline for the right camera,

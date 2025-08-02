@@ -163,6 +163,8 @@ def generate_launch_description():
             "RGBD/OptimizeFromGraphEnd": "false",
             "Reg/Force3DoF": "true",
             "Vis/MinInliers": "12",
+
+            "Grid/Sensor": "1",
         }],
         remappings=[
             ('rgb/image', '/camera/image_raw'),
@@ -183,9 +185,8 @@ def generate_launch_description():
         name='rtabmap_viz',
         parameters=[{
             'use_sim_time': True,
-            'subscribe_laserScan': False,
-            # 'subscribe_depth': True,
-            'subscribe_stereo': True,
+            'subscribe_depth': True,
+            'subscribe_scan': True,
             'subscribe_odom_info': True,
             'sync_queue_size': 30,
             'topic_queue_size': 30,
@@ -202,11 +203,8 @@ def generate_launch_description():
         webots,
         webots._supervisor,
         my_robot_driver,
+        rtabmap_viz,
 
-        TimerAction(
-            period=4.0,
-            actions=[rtabmap_viz]
-        ),
         # TimerAction(
         #     period=5.0,
         #     actions=[
@@ -222,7 +220,7 @@ def generate_launch_description():
                 rtabmap_slam_node,
                 rgbd_odometry_node,
                 depth_image_to_laserscan,
-                robot_state_publisher
+                robot_state_publisher,
             ]
         ),
         launch.actions.RegisterEventHandler(
